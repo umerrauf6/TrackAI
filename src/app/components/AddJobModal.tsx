@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
-import { X, Save, Company } from 'lucide-react';
+import { X, Save } from 'lucide-react';
 import { JobApplication } from '../types/job';
 
 interface AddJobModalProps {
