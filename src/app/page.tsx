@@ -48,19 +48,7 @@ export default function LandingPage() {
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       
       {/* Header bar */}
-      <header ref={headerRef} className="glass-panel" style={{
-        position: 'sticky',
-        top: 20,
-        zIndex: 50,
-        margin: '20px auto',
-        width: '90%',
-        maxWidth: 1200,
-        padding: '12px 24px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderRadius: '16px'
-      }}>
+      <header ref={headerRef} className="glass-panel landing-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Logo size={32} />
           <span className="brand-font" style={{ fontSize: 20, fontWeight: 800, background: 'linear-gradient(to right, #ffffff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Track AI</span>

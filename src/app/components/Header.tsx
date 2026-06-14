@@ -58,22 +58,16 @@ export default function Header({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20, marginBottom: 30 }}>
       {/* Top Navbar */}
-      <div className="glass-panel" style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px 24px',
-        borderRadius: 16
-      }}>
+      <div className="glass-panel nav-container">
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="nav-brand">
           <Logo size={28} />
           <span className="brand-font" style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>Track AI</span>
           <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '2px 6px', color: 'var(--text-secondary)' }}>SaaS Pro</span>
         </div>
 
         {/* Sync & CTA Actions */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="nav-actions">
           {/* Gmail Connection Status */}
           {user.googleEmail ? (
             <div style={{
@@ -121,10 +115,10 @@ export default function Header({
             <Plus size={14} /> Add Job
           </button>
 
-          <div style={{ width: 1, height: 20, background: 'var(--border-color)' }}></div>
+          <div className="nav-divider"></div>
 
           {/* User profile logout dropdown */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="nav-profile">
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{user.name}</span>
               <span style={{ fontSize: 10, color: 'var(--text-secondary)' }}>User Dashboard</span>
