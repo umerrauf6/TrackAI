@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     const profileResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
     });
-    
+
     if (!profileResponse.ok) {
       throw new Error('Failed to retrieve Google profile');
     }
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
       });
 
       const response = NextResponse.redirect(dashboardUrl.toString());
-      
+
       response.cookies.set('token', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
