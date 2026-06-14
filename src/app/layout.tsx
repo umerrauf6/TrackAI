@@ -1,5 +1,6 @@
 import './globals.css';
 import { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 
 export const metadata: Metadata = {
   title: 'Track AI | The Automated Job Tracker SaaS',
@@ -27,6 +28,7 @@ export default function RootLayout({
         <div className="ambient-glow-1"></div>
         <div className="ambient-glow-2"></div>
         {children}
+        <Analytics />
       </body>
     </html>
   );
