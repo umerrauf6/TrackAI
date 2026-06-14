@@ -1,4 +1,4 @@
-# TrackAI 🚀
+# Track AI 🚀
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
@@ -6,7 +6,7 @@
 [![Groq](https://img.shields.io/badge/AI_Model-Llama_3-f59e0b?style=for-the-badge&logo=meta&logoColor=white)](https://groq.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-**TrackAI** is an automated, multi-user **Job Application Tracker SaaS** designed to eliminate manual data entry. By linking their Gmail inbox, TrackAI automatically scans incoming emails, uses the **Groq API (Llama 3)** to parse details (company, role, salary, status), and populates a sleek, responsive Kanban tracking board.
+**Track AI** is an automated, multi-user **Job Application Tracker SaaS** designed to eliminate manual data entry. By linking their Gmail inbox, Track AI automatically scans incoming emails, uses the **Groq API (Llama 3)** to parse details (company, role, salary, status), and populates a sleek, responsive Kanban tracking board.
 
 ---
 
@@ -90,7 +90,7 @@ Open `http://localhost:3000` in your browser to view the application.
 
 ## 🔮 Gmail Parser Details & Fallback
 
-If you don't have a `GROQ_API_KEY` configured, TrackAI uses a smart local **Regex Heuristics Fallback Engine** to inspect subjects and bodies for company names, positions, and details. Adding a Groq key instantly unlocks full Llama 3 parsing, extracting salaries, recruiter next steps, and generating custom checklist items.
+If you don't have a `GROQ_API_KEY` configured, Track AI uses a smart local **Regex Heuristics Fallback Engine** to inspect subjects and bodies for company names, positions, and details. Adding a Groq key instantly unlocks full Llama 3 parsing, extracting salaries, recruiter next steps, and generating custom checklist items.
 
 ---
 
