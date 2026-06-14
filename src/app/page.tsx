@@ -63,7 +63,7 @@ export default function LandingPage() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Logo size={32} />
-          <span className="brand-font" style={{ fontSize: 20, fontWeight: 800, background: 'linear-gradient(to right, #ffffff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackrAI</span>
+          <span className="brand-font" style={{ fontSize: 20, fontWeight: 800, background: 'linear-gradient(to right, #ffffff, #9ca3af)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackAI</span>
         </div>
 
         <nav className="flex items-center" style={{ gap: 24 }}>
@@ -143,7 +143,7 @@ export default function LandingPage() {
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }}></div>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b' }}></div>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981' }}></div>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 10 }}>app.trackrai.com/dashboard</span>
+              <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 10 }}>app.trackai.com/dashboard</span>
             </div>
             
             {/* Visual Email to Card Stagger Demo */}
@@ -236,7 +236,7 @@ export default function LandingPage() {
         borderRadius: 0
       }}>
         <div style={{ width: '90%', maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: 13, color: 'var(--text-muted)' }}>
-          <span>© 2026 TrackrAI. All rights reserved.</span>
+          <span>© 2026 TrackAI. All rights reserved.</span>
           <div style={{ display: 'flex', gap: 16 }}>
             <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy Policy</a>
             <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Terms of Service</a>
