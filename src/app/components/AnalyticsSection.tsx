@@ -33,13 +33,6 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
     : 0;
 
   useEffect(() => {
-    // GSAP animation for SVG bar graphs
-    gsap.fromTo(
-      '.analytics-bar',
-      { width: 0 },
-      { width: (i, el) => el.getAttribute('data-target-width') + '%', duration: 1.2, ease: 'power2.out', stagger: 0.1 }
-    );
-
     // Circular gauge animation
     const circle = document.querySelector('.gauge-circle') as SVGPathElement;
     if (circle) {
@@ -81,9 +74,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             </div>
             <div style={{ height: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 4, overflow: 'hidden' }}>
               <div 
-                className="analytics-bar" 
-                data-target-width={(bookmarked / maxVal) * 100}
-                style={{ height: '100%', background: 'rgb(var(--status-bookmarked))', borderRadius: 4 }}
+                style={{ 
+                  height: '100%', 
+                  width: `${(bookmarked / maxVal) * 100}%`, 
+                  background: 'hsl(var(--status-bookmarked))', 
+                  borderRadius: 4,
+                  transition: 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
               ></div>
             </div>
           </div>
@@ -96,9 +93,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             </div>
             <div style={{ height: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 4, overflow: 'hidden' }}>
               <div 
-                className="analytics-bar" 
-                data-target-width={(applied / maxVal) * 100}
-                style={{ height: '100%', background: 'rgb(var(--status-applied))', borderRadius: 4 }}
+                style={{ 
+                  height: '100%', 
+                  width: `${(applied / maxVal) * 100}%`, 
+                  background: 'hsl(var(--status-applied))', 
+                  borderRadius: 4,
+                  transition: 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
               ></div>
             </div>
           </div>
@@ -111,9 +112,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             </div>
             <div style={{ height: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 4, overflow: 'hidden' }}>
               <div 
-                className="analytics-bar" 
-                data-target-width={(interviewing / maxVal) * 100}
-                style={{ height: '100%', background: 'rgb(var(--status-interviewing))', borderRadius: 4 }}
+                style={{ 
+                  height: '100%', 
+                  width: `${(interviewing / maxVal) * 100}%`, 
+                  background: 'hsl(var(--status-interviewing))', 
+                  borderRadius: 4,
+                  transition: 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
               ></div>
             </div>
           </div>
@@ -126,9 +131,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             </div>
             <div style={{ height: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 4, overflow: 'hidden' }}>
               <div 
-                className="analytics-bar" 
-                data-target-width={(offer / maxVal) * 100}
-                style={{ height: '100%', background: 'rgb(var(--status-offer))', borderRadius: 4 }}
+                style={{ 
+                  height: '100%', 
+                  width: `${(offer / maxVal) * 100}%`, 
+                  background: 'hsl(var(--status-offer))', 
+                  borderRadius: 4,
+                  transition: 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
               ></div>
             </div>
           </div>
@@ -141,9 +150,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             </div>
             <div style={{ height: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 4, overflow: 'hidden' }}>
               <div 
-                className="analytics-bar" 
-                data-target-width={(rejected / maxVal) * 100}
-                style={{ height: '100%', background: 'rgb(var(--status-rejected))', borderRadius: 4 }}
+                style={{ 
+                  height: '100%', 
+                  width: `${(rejected / maxVal) * 100}%`, 
+                  background: 'hsl(var(--status-rejected))', 
+                  borderRadius: 4,
+                  transition: 'width 1.2s cubic-bezier(0.16, 1, 0.3, 1)'
+                }}
               ></div>
             </div>
           </div>
