@@ -185,7 +185,7 @@ export default function LandingPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 24 }}>
             <div className="glass-panel feature-card" style={{ padding: 24 }}>
-              <div style={{ background: 'rgba(139, 92, 246, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyCenter: 'center', justifyContent: 'center', color: 'var(--accent)', marginBottom: 16 }}>
+              <div style={{ background: 'rgba(139, 92, 246, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', marginBottom: 16 }}>
                 <Mail size={22} />
               </div>
               <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Gmail Synchronization</h3>
@@ -195,7 +195,7 @@ export default function LandingPage() {
             </div>
 
             <div className="glass-panel feature-card" style={{ padding: 24 }}>
-              <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyCenter: 'center', justifyContent: 'center', color: '#3b82f6', marginBottom: 16 }}>
+              <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', marginBottom: 16 }}>
                 <Sparkles size={22} />
               </div>
               <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Groq AI Parsing</h3>
@@ -205,7 +205,7 @@ export default function LandingPage() {
             </div>
 
             <div className="glass-panel feature-card" style={{ padding: 24 }}>
-              <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyCenter: 'center', justifyContent: 'center', color: '#10b981', marginBottom: 16 }}>
+              <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', marginBottom: 16 }}>
                 <Kanban size={22} />
               </div>
               <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Kanban Management</h3>
@@ -215,7 +215,7 @@ export default function LandingPage() {
             </div>
 
             <div className="glass-panel feature-card" style={{ padding: 24 }}>
-              <div style={{ background: 'rgba(245, 158, 11, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyCenter: 'center', justifyContent: 'center', color: '#f59e0b', marginBottom: 16 }}>
+              <div style={{ background: 'rgba(245, 158, 11, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', marginBottom: 16 }}>
                 <CheckSquare size={22} />
               </div>
               <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Dynamic Prep Tasks</h3>

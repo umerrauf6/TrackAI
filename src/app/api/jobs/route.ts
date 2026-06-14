@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/app/utils/jwt-server';
 import { getUserJobs, createJob } from '@/app/utils/db-server';
 
+export const dynamic = 'force-dynamic';
+
 // Get current user id from JWT token in cookies
 function getAuthenticatedUserId(req: NextRequest): string | null {
   const token = req.cookies.get('token')?.value;

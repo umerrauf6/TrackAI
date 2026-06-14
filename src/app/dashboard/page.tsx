@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { JobApplication, UserSession } from '../types/job';
 import Header from '../components/Header';
@@ -13,6 +13,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { AlertCircle, CheckCircle, RefreshCw, X } from 'lucide-react';
 
 export default function Dashboard() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'var(--text-secondary)'
+      }}>
+        Loading your dashboard...
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
+  );
+}
+
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

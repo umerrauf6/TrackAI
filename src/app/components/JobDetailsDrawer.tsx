@@ -275,7 +275,7 @@ export default function JobDetailsDrawer({
                   </div>
                 ))
               ) : (
-                <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', py: 10 }}>No custom tasks yet.</p>
+                <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>No custom tasks yet.</p>
               )}
             </div>
 
