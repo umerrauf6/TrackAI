@@ -58,11 +58,13 @@ function DashboardContent() {
       const data = await res.json();
       if (!res.ok || !data.authenticated) {
         router.push('/login');
-        return;
+        return null;
       }
       setUser(data.user);
+      return data.user;
     } catch (error) {
       router.push('/login');
+      return null;
     }
   };
 
@@ -86,11 +88,31 @@ function DashboardContent() {
     }
   };
 
+  const triggerBackgroundSync = async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/gmail/sync', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.jobsFound > 0) {
+        await fetchJobs();
+        setSyncResult(`Auto-Sync: Found and parsed ${data.jobsFound} new job applications.`);
+      }
+    } catch (error) {
+      console.error('Background auto-sync failed:', error);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   useEffect(() => {
     const init = async () => {
-      await fetchSession();
+      const loggedUser = await fetchSession();
       await fetchJobs();
       setLoading(false);
+
+      if (loggedUser && loggedUser.gmailSyncActive) {
+        triggerBackgroundSync();
+      }
     };
     init();
 

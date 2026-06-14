@@ -370,3 +370,22 @@ export async function deleteJob(userId: string, jobId: string): Promise<void> {
     where: { id: jobId }
   });
 }
+
+export async function getActiveGmailSyncUsers(): Promise<User[]> {
+  const users = await prisma.user.findMany({
+    where: {
+      gmailSyncActive: true,
+      googleRefreshToken: { not: null }
+    }
+  });
+
+  return users.map(user => ({
+    ...user,
+    createdAt: user.createdAt.toISOString(),
+    googleAccessToken: user.googleAccessToken || undefined,
+    googleRefreshToken: user.googleRefreshToken || undefined,
+    googleEmail: user.googleEmail || undefined,
+    lastSyncedTime: user.lastSyncedTime?.toISOString() || undefined
+  }));
+}
+
