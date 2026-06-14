@@ -4,6 +4,7 @@ interface ParsedJobInfo {
   salary: string;
   status: 'Bookmarked' | 'Applied' | 'Interviewing' | 'Offer' | 'Rejected';
   notes: string;
+  isJobRelated: boolean;
 }
 
 // Smart Regex Heuristics fallback parser
@@ -11,6 +12,14 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
   const cleanSubject = subject.toLowerCase();
   const cleanBody = body.toLowerCase();
   
+  // Job keywords to check relevance
+  const jobKeywords = [
+    'application', 'apply', 'applying', 'interview', 'job offer', 'resume', 
+    'candidate', 'hiring', 'position of', 'role of', 'career opportunity',
+    'thank you for applying', 'recruitment', 'offer letter', 'rejection'
+  ];
+  const isJobRelated = jobKeywords.some(kw => cleanSubject.includes(kw) || cleanBody.includes(kw));
+
   // 1. Detect Company
   let company = 'Unknown Company';
   const companyPatterns = [
@@ -81,7 +90,8 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
     position,
     salary,
     status,
-    notes
+    notes,
+    isJobRelated: isJobRelated && company !== 'Unknown Company'
   };
 }
 
@@ -96,19 +106,28 @@ export async function parseEmailWithAI(subject: string, body: string): Promise<P
   }
 
   try {
-    const prompt = `You are a parser designed to scan job application emails. Extract the following information from the email subject and email body and return a clean JSON object containing:
-- company: The company name (e.g. Stripe, Google). Be concise and extract only the official brand name.
-- position: The job title (e.g. Senior Frontend Engineer, Devops Intern).
-- salary: Expected salary if mentioned, otherwise write "Not Specified".
-- status: Set this string to exactly one of the following based on the content: "Applied" (for thank you for applying / received emails), "Interviewing" (if asking to schedule a call, chat, interview, or code test), "Offer" (if an offer letter is sent or verbal offer made), or "Rejected" (if they are not moving forward).
-- notes: A short, professional 1-2 sentence summary of what this email says and if there are any immediate next steps mentioned.
+    const prompt = `You are an expert AI parser designed to scan emails and detect job application status updates. Analyze the email subject and body carefully.
+
+First, determine if this email is directly related to a job application process (e.g. applying, scheduling interviews, candidate follow-ups, rejections, or job offers). Set "isJobRelated" to true if it is, and false if it is a general promotion, news subscription, purchase receipt, or unrelated account email.
+
+Extract the following information:
+- company: The official brand name of the company hiring (e.g. "Stripe", "Google"). Be extremely precise. Avoid generic terms like "Careers Team", "Jobs", "Recruitment", "HR", or "No-Reply". If you cannot extract a specific company, default to "Unknown Company".
+- position: The job title (e.g. "Senior Frontend Architect", "Software Engineer"). If not explicitly mentioned, default to "Software Engineer".
+- salary: Expected salary or rate if mentioned, otherwise "Not Specified".
+- status: Set this to exactly one of the following based on the context: 
+  * "Applied" (for standard submission confirmations, application receipts, thank-you-for-applying emails)
+  * "Interviewing" (if the email talks about next steps, scheduling calls, phone screens, technical tests, or virtual chats)
+  * "Offer" (if an official offer letter or package is details)
+  * "Rejected" (if they pass, decline, or are not moving forward with your candidacy)
+- notes: A concise 1-2 sentence professional summary of what this email says and if there are immediate steps required.
 
 Email Subject: ${subject}
 Email Body:
 ${body}
 
-You MUST return only a valid JSON matching this format:
+You MUST return only a valid JSON object matching this schema:
 {
+  "isJobRelated": boolean,
   "company": "string",
   "position": "string",
   "salary": "string",
@@ -152,6 +171,11 @@ You MUST return only a valid JSON matching this format:
     const allowedStatuses: ParsedJobInfo['status'][] = ['Bookmarked', 'Applied', 'Interviewing', 'Offer', 'Rejected'];
     if (!allowedStatuses.includes(parsedJson.status)) {
       parsedJson.status = 'Applied';
+    }
+    
+    // Safety check on isJobRelated
+    if (parsedJson.company === 'Unknown Company' || !parsedJson.company) {
+      parsedJson.isJobRelated = false;
     }
     
     return parsedJson;

@@ -175,6 +175,12 @@ export async function syncUserGmail(userId: string): Promise<number> {
     // 3. AI Parse Email Content
     const parsedInfo = await parseEmailWithAI(subject, bodyText);
 
+    // Skip if the email is classified as not job related
+    if (parsedInfo.isJobRelated === false) {
+      console.log(`Skipping message ${msg.id} ("${subject}"): classified as not job-related.`);
+      continue;
+    }
+
     // 4. Create Job in database
     await createJob(userId, {
       company: parsedInfo.company,
