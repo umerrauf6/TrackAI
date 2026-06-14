@@ -1,0 +1,57 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id                 String    @id @default(uuid())
+  email              String    @unique
+  passwordHash       String
+  name               String
+  createdAt          DateTime  @default(now())
+  googleAccessToken  String?
+  googleRefreshToken String?
+  googleEmail        String?
+  gmailSyncActive    Boolean   @default(false)
+  lastSyncedTime     DateTime?
+  jobs               Job[]
+}
+
+model Job {
+  id             String          @id @default(uuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company        String
+  position       String
+  salary         String
+  status         String
+  url            String
+  notes          String
+  dateApplied    String
+  source         String
+  gmailMessageId String?
+  emailSender    String?
+  checklist      ChecklistItem[]
+  history        HistoryEvent[]
+}
+
+model ChecklistItem {
+  id        String  @id @default(uuid())
+  jobId     String
+  job       Job     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  text      String
+  completed Boolean
+}
+
+model HistoryEvent {
+  id          String   @id @default(uuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  date        DateTime @default(now())
+  status      String
+  description String
+}

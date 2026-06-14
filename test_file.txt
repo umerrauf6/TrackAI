@@ -1,0 +1,69 @@
+
+# AI Coding Assistant
+
+We're building a Chrome extension to help developers code faster. Here’s our approach.
+
+## The Core Challenge
+
+When you're stuck, you want context-aware help that understands your current file, project structure, and coding patterns — not generic answers.
+
+---
+
+## Our Solution
+
+A Chrome extension that uses AI to:
+- **Read relevant context** (current file, open tabs, dependencies) and provide **AI-generated code suggestions**, inline documentation, or debugging help.
+- **Integrate with your workflow** using Gemini Web, Obsidian, or local tools.
+
+---
+
+## What We’re Building
+
+### 1. Context Collector
+- Scans open tabs, file contents, and project structure.
+- Extracts type definitions, schemas, and relevant code snippets.
+
+### 2. AI Reasoning Engine
+- Uses **Groq Gemini Web 2.5** with a lightweight, context-aware prompt system.
+- Provides inline code suggestions, documentation, or debugging help.
+
+### 3. UI Integration
+- Context menu and inline AI button.
+- Integration with Gemini Web, Obsidian, or your preferred tools.
+
+---
+
+## Quickstart
+
+### 1. Setup
+```bash
+git clone https://github.com/adithyavairavel/AI-Coding-Assistant.git
+cd AI-Coding-Assistant
+pnpm install
+
+# Add your GROQ_API_KEY to .env
+# npm run build && npm run start (for the dev tool)
+```
+
+### 2. Usage
+- Right-click → "Ask AI Assistant".
+- AI suggestions appear inline or in the side panel.
+
+---
+
+## Tech Stack
+
+- **Frontend**: Vite + React + TypeScript.
+- **UI**: Chrome extension + local dev tool with **Chrome Web Store** distribution.
+- **AI Integration**: Gemini Web 2.5 via Groq.
+- **Context**: Tabs, file contents, project structure.
+- **Optional Persistence**: Obsidian.
+
+---
+
+## Road Ahead
+
+- Add inline code suggestions and AI-powered documentation.
+- Support for more LLMs and AI tools.
+- Advanced context awareness (dependency trees, project structure).
+- Visual diff viewer for generated code.
