@@ -144,7 +144,7 @@ export default function LandingPage() {
                 <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Status: Auto-detected applied state</span>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="glass-panel" style={{ padding: 12, borderRadius: 10, borderLeft: '4px solid rgb(var(--status-applied))' }}>
+                <div className="glass-panel" style={{ padding: 12, borderRadius: 10, borderLeft: '4px solid hsl(var(--status-applied))' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                     <span className="status-tag status-Applied" style={{ fontSize: 9 }}>Applied</span>
                     <span style={{ fontSize: 8, color: 'var(--text-muted)' }}>Auto-Synced</span>
@@ -152,7 +152,7 @@ export default function LandingPage() {
                   <h4 style={{ fontSize: 13, color: 'white', marginBottom: 2 }}>Google</h4>
                   <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Software Engineer</p>
                 </div>
-                <div className="glass-panel" style={{ padding: 12, borderRadius: 10, opacity: 0.5, borderLeft: '4px solid rgb(var(--status-interviewing))' }}>
+                <div className="glass-panel" style={{ padding: 12, borderRadius: 10, opacity: 0.5, borderLeft: '4px solid hsl(var(--status-interviewing))' }}>
                   <span className="status-tag status-Interviewing" style={{ fontSize: 9, marginBottom: 6 }}>Interviewing</span>
                   <h4 style={{ fontSize: 13, color: 'white', marginBottom: 2 }}>Stripe</h4>
                   <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Frontend Architect</p>

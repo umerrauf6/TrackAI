@@ -78,7 +78,7 @@ export default function KanbanBoard({ jobs, onCardClick, onStatusChange }: Kanba
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              borderBottom: `2px solid rgba(var(--status-${col.id}), 0.3)`,
+              borderBottom: `2px solid hsla(var(--status-${col.id}), 0.3)`,
               paddingBottom: 10
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

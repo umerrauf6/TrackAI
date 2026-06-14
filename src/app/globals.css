@@ -286,39 +286,39 @@ label {
 
 /* Dynamic status styles */
 .status-Bookmarked {
-  background: rgba(var(--status-bookmarked), 0.1);
-  color: rgb(var(--status-bookmarked));
-  border: 1px solid rgba(var(--status-bookmarked), 0.2);
+  background: hsla(var(--status-bookmarked), 0.1);
+  color: hsl(var(--status-bookmarked));
+  border: 1px solid hsla(var(--status-bookmarked), 0.2);
 }
-.status-Bookmarked-dot { background: rgb(var(--status-bookmarked)); }
+.status-Bookmarked-dot { background: hsl(var(--status-bookmarked)); }
 
 .status-Applied {
-  background: rgba(var(--status-applied), 0.1);
-  color: rgb(var(--status-applied));
-  border: 1px solid rgba(var(--status-applied), 0.2);
+  background: hsla(var(--status-applied), 0.1);
+  color: hsl(var(--status-applied));
+  border: 1px solid hsla(var(--status-applied), 0.2);
 }
-.status-Applied-dot { background: rgb(var(--status-applied)); }
+.status-Applied-dot { background: hsl(var(--status-applied)); }
 
 .status-Interviewing {
-  background: rgba(var(--status-interviewing), 0.1);
-  color: rgb(var(--status-interviewing));
-  border: 1px solid rgba(var(--status-interviewing), 0.2);
+  background: hsla(var(--status-interviewing), 0.1);
+  color: hsl(var(--status-interviewing));
+  border: 1px solid hsla(var(--status-interviewing), 0.2);
 }
-.status-Interviewing-dot { background: rgb(var(--status-interviewing)); }
+.status-Interviewing-dot { background: hsl(var(--status-interviewing)); }
 
 .status-Offer {
-  background: rgba(var(--status-offer), 0.1);
-  color: rgb(var(--status-offer));
-  border: 1px solid rgba(var(--status-offer), 0.2);
+  background: hsla(var(--status-offer), 0.1);
+  color: hsl(var(--status-offer));
+  border: 1px solid hsla(var(--status-offer), 0.2);
 }
-.status-Offer-dot { background: rgb(var(--status-offer)); }
+.status-Offer-dot { background: hsl(var(--status-offer)); }
 
 .status-Rejected {
-  background: rgba(var(--status-rejected), 0.1);
-  color: rgb(var(--status-rejected));
-  border: 1px solid rgba(var(--status-rejected), 0.2);
+  background: hsla(var(--status-rejected), 0.1);
+  color: hsl(var(--status-rejected));
+  border: 1px solid hsla(var(--status-rejected), 0.2);
 }
-.status-Rejected-dot { background: rgb(var(--status-rejected)); }
+.status-Rejected-dot { background: hsl(var(--status-rejected)); }
 
 /* Responsive Navigation & Profile Styles */
 .nav-container {
@@ -348,10 +348,30 @@ label {
   gap: 10px;
 }
 
+.profile-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.profile-link:hover .profile-name {
+  color: var(--accent) !important;
+}
+
 .nav-divider {
   width: 1px;
   height: 20px;
   background: var(--border-color);
+}
+
+.dashboard-container {
+  min-height: 100vh;
+  padding: 24px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .landing-header {
@@ -370,21 +390,32 @@ label {
 
 @media (max-width: 991px) {
   .nav-container {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
     padding: 16px;
     gap: 16px;
   }
 
   .nav-brand {
-    justify-content: space-between;
-    width: 100%;
+    grid-column: 1;
+    justify-content: flex-start;
+  }
+
+  .nav-profile {
+    grid-column: 2;
+    justify-content: flex-end;
+    margin-top: 0;
+    border: none;
+    background: none;
+    padding: 0;
   }
 
   .nav-actions {
+    grid-column: 1 / span 2;
     flex-wrap: wrap;
     gap: 10px;
-    justify-content: space-between;
+    justify-content: stretch;
     width: 100%;
   }
 
@@ -401,19 +432,12 @@ label {
     font-size: 12px;
     padding: 10px 14px;
   }
-
-  .nav-profile {
-    flex: 1 1 100%;
-    justify-content: space-between;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border-color);
-    padding: 12px 16px;
-    border-radius: var(--radius-sm);
-    margin-top: 6px;
-  }
 }
 
 @media (max-width: 768px) {
+  .dashboard-container {
+    padding: 16px 16px;
+  }
   .landing-header {
     flex-direction: column;
     gap: 14px;

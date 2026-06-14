@@ -51,7 +51,7 @@ export default function JobCard({ job, onCardClick, onStatusChange }: JobCardPro
         borderRadius: 12,
         background: 'rgba(255, 255, 255, 0.02)',
         cursor: 'pointer',
-        borderLeft: `4px solid rgb(var(--status-${job.status}))`,
+        borderLeft: `4px solid hsl(var(--status-${job.status}))`,
         display: 'flex',
         flexDirection: 'column',
         gap: 12

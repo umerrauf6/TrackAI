@@ -238,7 +238,7 @@ function DashboardContent() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', padding: '24px 40px', maxWidth: 1400, margin: '0 auto' }}>
+    <div className="dashboard-container" style={{ minHeight: '100vh' }}>
       
       {/* Dynamic Alerts Container */}
       <AnimatePresence>

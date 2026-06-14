@@ -310,7 +310,7 @@ export default function JobDetailsDrawer({
                     width: 9,
                     height: 9,
                     borderRadius: '50%',
-                    background: `rgb(var(--status-${event.status}))`,
+                    background: `hsl(var(--status-${event.status}))`,
                     border: '2px solid var(--bg-primary)'
                   }}></div>
                   
