@@ -2,12 +2,16 @@
 
 import { motion } from 'framer-motion';
 import { JobApplication } from '../types/job';
-import { Mail, Calendar, DollarSign, ChevronLeft, ChevronRight, FileText, CheckSquare } from 'lucide-react';
+import { Mail, Calendar, DollarSign, ChevronLeft, ChevronRight, FileText, CheckSquare, Check } from 'lucide-react';
+import { useState } from 'react';
 
 interface JobCardProps {
   job: JobApplication;
   onCardClick: (job: JobApplication) => void;
   onStatusChange: (jobId: string, newStatus: JobApplication['status']) => void;
+  isSelected: boolean;
+  selectionModeActive: boolean;
+  onToggleSelect: (e: React.MouseEvent) => void;
 }
 
 const statusOrder: JobApplication['status'][] = [
@@ -18,7 +22,15 @@ const statusOrder: JobApplication['status'][] = [
   'Rejected',
 ];
 
-export default function JobCard({ job, onCardClick, onStatusChange }: JobCardProps) {
+export default function JobCard({
+  job,
+  onCardClick,
+  onStatusChange,
+  isSelected,
+  selectionModeActive,
+  onToggleSelect,
+}: JobCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
   const currentIdx = statusOrder.indexOf(job.status);
   
   // Calculate checklist progress
@@ -42,21 +54,52 @@ export default function JobCard({ job, onCardClick, onStatusChange }: JobCardPro
   return (
     <motion.div
       layoutId={`card-${job.id}`}
-      whileHover={{ y: -4, scale: 1.01, boxShadow: '0 12px 24px rgba(0,0,0,0.2)' }}
+      whileHover={{ y: -4, scale: 1.01, boxShadow: isSelected ? '0 12px 24px rgba(139, 92, 246, 0.25)' : '0 12px 24px rgba(0,0,0,0.2)' }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       onClick={() => onCardClick(job)}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className="glass-panel"
       style={{
+        position: 'relative',
         padding: 16,
         borderRadius: 12,
-        background: 'rgba(255, 255, 255, 0.02)',
+        background: isSelected ? 'rgba(139, 92, 246, 0.05)' : 'rgba(255, 255, 255, 0.02)',
         cursor: 'pointer',
         borderLeft: `4px solid hsl(var(--status-${job.status}))`,
+        borderTop: isSelected ? '1px solid rgba(139, 92, 246, 0.4)' : undefined,
+        borderRight: isSelected ? '1px solid rgba(139, 92, 246, 0.4)' : undefined,
+        borderBottom: isSelected ? '1px solid rgba(139, 92, 246, 0.4)' : undefined,
+        boxShadow: isSelected ? '0 0 15px rgba(139, 92, 246, 0.15)' : undefined,
         display: 'flex',
         flexDirection: 'column',
         gap: 12
       }}
     >
+      {/* Floating Selection Checkbox */}
+      <div 
+        onClick={onToggleSelect}
+        style={{
+          position: 'absolute',
+          top: -8,
+          left: -8,
+          width: 20,
+          height: 20,
+          borderRadius: 4,
+          border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border-color)',
+          background: isSelected ? 'var(--accent)' : 'rgba(10, 11, 16, 0.95)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 10,
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          opacity: selectionModeActive || isHovered ? 1 : 0,
+          transition: 'opacity 0.2s ease, background-color 0.2s ease'
+        }}
+      >
+        {isSelected && <Check size={12} color="white" strokeWidth={3} />}
+      </div>
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <h4 style={{ fontSize: 15, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>

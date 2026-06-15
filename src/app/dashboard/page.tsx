@@ -10,7 +10,7 @@ import AddJobModal from '../components/AddJobModal';
 import JobDetailsDrawer from '../components/JobDetailsDrawer';
 import GmailSimulator from '../components/GmailSimulator';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, CheckCircle, RefreshCw, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, RefreshCw, X, Trash2 } from 'lucide-react';
 
 export default function Dashboard() {
   return (
@@ -47,6 +47,10 @@ function DashboardContent() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobApplication | null>(null);
+
+  // Selection states
+  const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
 
   // Alert banner states
   const [bannerError, setBannerError] = useState<string | null>(null);
@@ -205,9 +209,44 @@ function DashboardContent() {
         throw new Error(errorData.error || 'Failed to delete job');
       }
 
+      setSelectedJobIds((prev) => prev.filter(id => id !== jobId));
       await fetchJobs();
     } catch (error: any) {
       alert(error.message || 'Failed to delete job');
+    }
+  };
+
+  const handleToggleSelectJob = (jobId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedJobIds((prev) => 
+      prev.includes(jobId) ? prev.filter(id => id !== jobId) : [...prev, jobId]
+    );
+  };
+
+  const handleDeleteMultipleJobs = async () => {
+    if (selectedJobIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete the ${selectedJobIds.length} selected job applications?`)) {
+      return;
+    }
+
+    setBulkDeleting(true);
+    try {
+      await Promise.all(
+        selectedJobIds.map(async (jobId) => {
+          const res = await fetch(`/api/jobs/${jobId}`, { method: 'DELETE' });
+          if (!res.ok) {
+            console.error(`Failed to delete job: ${jobId}`);
+          }
+        })
+      );
+      
+      setSelectedJobIds([]);
+      setBannerSuccess(`Successfully deleted the selected job applications.`);
+      await fetchJobs();
+    } catch (error) {
+      setBannerError('An error occurred during bulk deletion.');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -348,6 +387,8 @@ function DashboardContent() {
         jobs={jobs}
         onCardClick={(job) => setSelectedJob(job)}
         onStatusChange={handleStatusChange}
+        selectedJobIds={selectedJobIds}
+        onToggleSelectJob={handleToggleSelectJob}
       />
 
       {/* Modals & Slide-out Drawers */}
@@ -375,6 +416,87 @@ function DashboardContent() {
             onClose={() => setIsSimulatorOpen(false)}
             onNewJobSynced={fetchJobs}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Floating Bulk Action Bar */}
+      <AnimatePresence>
+        {selectedJobIds.length > 0 && (
+          <motion.div
+            initial={{ y: 100, opacity: 0, x: '-50%' }}
+            animate={{ y: 0, opacity: 1, x: '-50%' }}
+            exit={{ y: 100, opacity: 0, x: '-50%' }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            style={{
+              position: 'fixed',
+              bottom: 30,
+              left: '50%',
+              zIndex: 90,
+              padding: '12px 24px',
+              borderRadius: 30,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 20,
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(139, 92, 246, 0.2)',
+              border: '1px solid rgba(139, 92, 246, 0.3)',
+              background: 'rgba(10, 11, 16, 0.85)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{
+                background: 'var(--accent)',
+                color: 'white',
+                borderRadius: '50%',
+                width: 20,
+                height: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: 11,
+                fontWeight: 700
+              }}>
+                {selectedJobIds.length}
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)' }}>
+                job{selectedJobIds.length > 1 ? 's' : ''} selected
+              </span>
+            </div>
+
+            <div style={{ height: 20, width: 1, background: 'var(--border-color)' }}></div>
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => setSelectedJobIds([])}
+                className="btn btn-text"
+                style={{ fontSize: 12, padding: '6px 12px', color: 'var(--text-secondary)' }}
+                disabled={bulkDeleting}
+              >
+                Clear
+              </button>
+              
+              <button
+                onClick={handleDeleteMultipleJobs}
+                className="btn btn-primary"
+                disabled={bulkDeleting}
+                style={{
+                  background: '#ef4444',
+                  borderColor: '#ef4444',
+                  boxShadow: '0 0 15px rgba(239, 68, 68, 0.2)',
+                  fontSize: 12,
+                  padding: '6px 14px',
+                  borderRadius: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6
+                }}
+              >
+                <Trash2 size={13} />
+                {bulkDeleting ? 'Deleting...' : 'Delete Selected'}
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 

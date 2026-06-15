@@ -9,6 +9,8 @@ interface KanbanBoardProps {
   jobs: JobApplication[];
   onCardClick: (job: JobApplication) => void;
   onStatusChange: (jobId: string, newStatus: JobApplication['status']) => void;
+  selectedJobIds: string[];
+  onToggleSelectJob: (jobId: string, e: React.MouseEvent) => void;
 }
 
 const COLUMNS: { id: JobApplication['status']; label: string }[] = [
@@ -19,7 +21,13 @@ const COLUMNS: { id: JobApplication['status']; label: string }[] = [
   { id: 'Rejected', label: 'Rejected' },
 ];
 
-export default function KanbanBoard({ jobs, onCardClick, onStatusChange }: KanbanBoardProps) {
+export default function KanbanBoard({
+  jobs,
+  onCardClick,
+  onStatusChange,
+  selectedJobIds,
+  onToggleSelectJob,
+}: KanbanBoardProps) {
   // Track which column is currently hovered over by a dragged card
   const [activeOverColumn, setActiveOverColumn] = useState<string | null>(null);
 
@@ -121,6 +129,9 @@ export default function KanbanBoard({ jobs, onCardClick, onStatusChange }: Kanba
                       job={job}
                       onCardClick={onCardClick}
                       onStatusChange={onStatusChange}
+                      isSelected={selectedJobIds.includes(job.id)}
+                      selectionModeActive={selectedJobIds.length > 0}
+                      onToggleSelect={(e) => onToggleSelectJob(job.id, e)}
                     />
                   </div>
                 ))
