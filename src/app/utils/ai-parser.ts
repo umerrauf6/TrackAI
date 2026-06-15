@@ -39,11 +39,14 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
   const cleanSubject = subject.toLowerCase();
   const cleanBody = body.toLowerCase();
   
-  // Job keywords to check relevance
+  // Job keywords to check relevance (English + German)
   const jobKeywords = [
     'application', 'apply', 'applying', 'interview', 'job offer', 'resume', 
     'candidate', 'hiring', 'position of', 'role of', 'career opportunity',
-    'thank you for applying', 'recruitment', 'offer letter', 'rejection'
+    'thank you for applying', 'recruitment', 'offer letter', 'rejection',
+    'bewerbung', 'beworben', 'eingegangen', 'unterlagen', 'vorstellungsgespräch',
+    'gespräch', 'kennenlernen', 'eingangsbestätigung', 'bestätigung', 'angebot',
+    'absage', 'arbeitsvertrag', 'zusage'
   ];
   const isJobRelated = jobKeywords.some(kw => cleanSubject.includes(kw) || cleanBody.includes(kw));
 
@@ -58,13 +61,17 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
     /([a-zA-Z0-9\s\.\,\-\&]+) application update/i,
     /career opportunities at ([a-zA-Z0-9\s\.\,\-\&]+)/i,
     /([a-zA-Z0-9\s\.\,\-\&]+) team/i,
+    /bewerbung bei ([a-zA-Z0-9\s\.\,\-\&]+)/i,
+    /bewerbung als [a-zA-Z0-9\s\.\,\-\&]+ bei ([a-zA-Z0-9\s\.\,\-\&]+)/i,
+    /vielen dank für ihre bewerbung bei ([a-zA-Z0-9\s\.\,\-\&]+)/i,
+    /eingangsbestätigung[:\-\s]+([a-zA-Z0-9\s\.\,\-\&]+)/i
   ];
 
   for (const pattern of companyPatterns) {
     const match = subject.match(pattern) || body.match(pattern);
     if (match && match[1]) {
       const candidate = match[1].trim();
-      if (candidate.length > 1 && candidate.length < 50 && !candidate.includes('thank you') && !candidate.includes('confirm')) {
+      if (candidate.length > 1 && candidate.length < 50 && !candidate.includes('thank you') && !candidate.includes('confirm') && !candidate.includes('vielen dank')) {
         company = candidate;
         break;
       }
@@ -75,7 +82,8 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
   let position = 'Software Engineer';
   const positionPatterns = [
     /(?:role of|position of|job application for|for the position of|role:) ([a-zA-Z0-9\s\.\-\&\/\#]+)/i,
-    /([a-zA-Z0-9\s\.\-\&\/\#]+) (?:application|role|position|job)/i
+    /([a-zA-Z0-9\s\.\-\&\/\#]+) (?:application|role|position|job)/i,
+    /bewerbung als ([a-zA-Z0-9\s\.\-\&\/\#]+)/i
   ];
   
   for (const pattern of positionPatterns) {
@@ -93,13 +101,13 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
     company = 'Selected Company';
   }
 
-  // 3. Detect Status
+  // 3. Detect Status (English + German)
   let status: ParsedJobInfo['status'] = 'Applied';
-  if (cleanSubject.includes('interview') || cleanBody.includes('schedule an interview') || cleanBody.includes('phone screen') || cleanBody.includes('chat about your application')) {
+  if (cleanSubject.includes('interview') || cleanSubject.includes('gespräch') || cleanSubject.includes('kennenlernen') || cleanBody.includes('schedule an interview') || cleanBody.includes('telefonat') || cleanBody.includes('vorstellungsgespräch')) {
     status = 'Interviewing';
-  } else if (cleanSubject.includes('offer') || cleanBody.includes('pleased to offer') || cleanBody.includes('letter of offer')) {
+  } else if (cleanSubject.includes('offer') || cleanSubject.includes('angebot') || cleanSubject.includes('zusage') || cleanBody.includes('pleased to offer') || cleanBody.includes('arbeitsvertrag')) {
     status = 'Offer';
-  } else if (cleanBody.includes('not moving forward') || cleanBody.includes('unfortunately') || cleanBody.includes('pursue other candidates') || cleanBody.includes('decided to pass')) {
+  } else if (cleanBody.includes('not moving forward') || cleanBody.includes('leider') || cleanBody.includes('absage') || cleanBody.includes('nicht berücksichtigt') || cleanBody.includes('decided to pass')) {
     status = 'Rejected';
   }
 
@@ -145,7 +153,7 @@ export async function parseEmailWithAI(subject: string, body: string): Promise<P
   }
 
   try {
-    const prompt = `You are an expert AI parser designed to scan emails and detect job application status updates. Analyze the email subject and body carefully.
+    const prompt = `You are an expert AI parser designed to scan emails in both English and German, detecting job application status updates. Analyze the email subject and body carefully.
 
 First, determine if this email is directly related to a job application process (e.g. applying to a job, scheduling interviews, candidate follow-ups, rejections, or job offers). Set "isJobRelated" to true if it is.
 
@@ -156,15 +164,15 @@ CRITICAL: Set "isJobRelated" to false for:
 Only set "isJobRelated" to true if the email is a genuine communication from a recruiter, hiring team, or automated jobs platform regarding an actual job application.
 
 Extract the following information:
-- company: The official brand name of the company hiring (e.g. "Stripe", "Google"). Be extremely precise. Avoid generic terms like "Careers Team", "Jobs", "Recruitment", "HR", or "No-Reply". If you cannot extract a specific company, default to "Unknown Company".
-- position: The job title (e.g. "Senior Frontend Architect", "Software Engineer"). If not explicitly mentioned, default to "Software Engineer".
+- company: The official brand name of the company hiring (e.g. "Stripe", "Google", "BMW"). Be extremely precise. Avoid generic terms like "Careers Team", "Jobs", "Recruitment", "HR", or "No-Reply". If you cannot extract a specific company, default to "Unknown Company".
+- position: The job title. For German job titles, please translate them to their English equivalent (e.g. "Softwareentwickler" should be translated to "Software Engineer") for consistency. If not explicitly mentioned, default to "Software Engineer".
 - salary: Expected salary or rate if mentioned, otherwise "Not Specified".
 - status: Set this to exactly one of the following based on the context: 
-  * "Applied" (for standard submission confirmations, application receipts, thank-you-for-applying emails)
-  * "Interviewing" (if the email talks about next steps, scheduling calls, phone screens, technical tests, or virtual chats)
-  * "Offer" (if an official offer letter or package is details)
-  * "Rejected" (if they pass, decline, or are not moving forward with your candidacy)
-- notes: A concise 1-2 sentence professional summary of what this email says and if there are immediate steps required.
+  * "Applied" (for standard submission confirmations, application receipts, thank-you-for-applying / "Vielen Dank für Ihre Bewerbung" emails)
+  * "Interviewing" (if the email talks about next steps, scheduling calls, phone screens, technical tests, or virtual chats / "Vorstellungsgespräch" / "Kennenlernen")
+  * "Offer" (if an official offer letter, package details, or draft employment contract / "Arbeitsvertrag" / "Zusage" is sent)
+  * "Rejected" (if they pass, decline, or are not moving forward with your candidacy / "Absage" / "Leider nicht berücksichtigt")
+- notes: A concise 1-2 sentence professional summary of what this email says and if there are immediate steps required. If the email is in German, write the summary notes in English.
 
 Email Subject: ${subject}
 Email Body:

@@ -94,7 +94,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
   }
 
   let accessToken = user.googleAccessToken;
-  const query = encodeURIComponent('subject:(application OR applied OR applying OR interview OR "thank you" OR "thanks for" OR "received your" OR confirm OR confirmation OR candidate OR update OR schedule OR offer)');
+  const query = encodeURIComponent('subject:(application OR applied OR applying OR interview OR "thank you" OR "thanks for" OR "received your" OR confirm OR confirmation OR candidate OR update OR schedule OR offer OR bewerbung OR beworben OR eingegangen OR vorstellungsgespräch OR gespräch OR kennenlernen OR eingangsbestätigung OR bestätigung OR angebot OR absage)');
 
   // 1. Fetch recent message headers from Gmail API
   let listResponse = await fetch(
