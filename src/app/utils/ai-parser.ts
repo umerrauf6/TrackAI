@@ -7,8 +7,35 @@ interface ParsedJobInfo {
   isJobRelated: boolean;
 }
 
+// Programmatic filter for non-job, account/security confirmation emails
+function isEmailBlacklisted(subject: string, body: string): boolean {
+  const cleanSubject = subject.toLowerCase();
+  const cleanBody = body.toLowerCase();
+
+  const blacklist = [
+    'oauth', 'security alert', 'authorized application', 'authorized app', 
+    'password reset', 'verify your email', 'two-factor', '2fa', 
+    'sign-in', 'signed in', 'login attempt', 'action required:', 'security key',
+    'connected to your account', 'device sign-in', 'account access', 'connected app',
+    'revoke access', 'revocation'
+  ];
+
+  return blacklist.some(term => cleanSubject.includes(term) || cleanBody.includes(term));
+}
+
 // Smart Regex Heuristics fallback parser
 function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
+  if (isEmailBlacklisted(subject, body)) {
+    return {
+      company: 'Unknown Company',
+      position: 'Software Engineer',
+      salary: 'Not Specified',
+      status: 'Applied',
+      notes: 'Ignored account/security email.',
+      isJobRelated: false
+    };
+  }
+
   const cleanSubject = subject.toLowerCase();
   const cleanBody = body.toLowerCase();
   
@@ -97,6 +124,18 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
 
 // AI Groq Llama 3 API email parser
 export async function parseEmailWithAI(subject: string, body: string): Promise<ParsedJobInfo> {
+  if (isEmailBlacklisted(subject, body)) {
+    console.log(`Programmatically filtered out blacklist email: "${subject}"`);
+    return {
+      company: 'Unknown Company',
+      position: 'Software Engineer',
+      salary: 'Not Specified',
+      status: 'Applied',
+      notes: 'Ignored account/security email.',
+      isJobRelated: false
+    };
+  }
+
   const apiKey = process.env.GROQ_API_KEY;
 
   // Fallback to heuristics if Groq API key is not configured
@@ -108,7 +147,13 @@ export async function parseEmailWithAI(subject: string, body: string): Promise<P
   try {
     const prompt = `You are an expert AI parser designed to scan emails and detect job application status updates. Analyze the email subject and body carefully.
 
-First, determine if this email is directly related to a job application process (e.g. applying, scheduling interviews, candidate follow-ups, rejections, or job offers). Set "isJobRelated" to true if it is, and false if it is a general promotion, news subscription, purchase receipt, or unrelated account email.
+First, determine if this email is directly related to a job application process (e.g. applying to a job, scheduling interviews, candidate follow-ups, rejections, or job offers). Set "isJobRelated" to true if it is.
+
+CRITICAL: Set "isJobRelated" to false for:
+- Account creation/authorization notifications (e.g. "An authorized OAuth Application was added", GitHub security alerts, GitLab login notifications).
+- Password resets, email verifications, and multi-factor auth codes.
+- Marketing promotions, sales pitches, newsletters, or purchase receipts.
+Only set "isJobRelated" to true if the email is a genuine communication from a recruiter, hiring team, or automated jobs platform regarding an actual job application.
 
 Extract the following information:
 - company: The official brand name of the company hiring (e.g. "Stripe", "Google"). Be extremely precise. Avoid generic terms like "Careers Team", "Jobs", "Recruitment", "HR", or "No-Reply". If you cannot extract a specific company, default to "Unknown Company".
