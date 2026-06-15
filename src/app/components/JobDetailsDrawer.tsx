@@ -208,7 +208,7 @@ export default function JobDetailsDrawer({
                 <strong>Sender:</strong> {job.emailSender}
               </p>
               <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                Detected and parsed via Gemini AI parser. Reference ID: {job.gmailMessageId}
+                Detected and parsed via AI engine. Reference ID: {job.gmailMessageId}
               </p>
             </div>
           )}
