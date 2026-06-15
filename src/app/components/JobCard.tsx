@@ -81,28 +81,37 @@ export default function JobCard({
         onClick={onToggleSelect}
         style={{
           position: 'absolute',
-          top: -8,
-          left: -8,
-          width: 20,
-          height: 20,
+          top: 15,
+          left: 16,
+          width: 18,
+          height: 18,
           borderRadius: 4,
-          border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border-color)',
-          background: isSelected ? 'var(--accent)' : 'rgba(10, 11, 16, 0.95)',
+          border: isSelected ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.35)',
+          background: isSelected ? 'var(--accent)' : 'rgba(10, 11, 16, 0.8)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           cursor: 'pointer',
           zIndex: 10,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-          opacity: selectionModeActive || isHovered ? 1 : 0,
+          opacity: selectionModeActive || isHovered || isSelected ? 1 : 0,
           transition: 'opacity 0.2s ease, background-color 0.2s ease'
         }}
       >
-        {isSelected && <Check size={12} color="white" strokeWidth={3} />}
+        {isSelected && <Check size={11} color="white" strokeWidth={3} />}
       </div>
       {/* Top Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <h4 style={{ fontSize: 15, fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 140 }}>
+        <h4 style={{ 
+          fontSize: 15, 
+          fontWeight: 700, 
+          color: 'white', 
+          overflow: 'hidden', 
+          textOverflow: 'ellipsis', 
+          whiteSpace: 'nowrap', 
+          maxWidth: 140,
+          paddingLeft: (selectionModeActive || isHovered || isSelected) ? 22 : 0,
+          transition: 'padding-left 0.2s ease'
+        }}>
           {job.company}
         </h4>
         <span style={{

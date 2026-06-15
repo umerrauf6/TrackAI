@@ -19,12 +19,12 @@ function ProfileContent() {
       const res = await fetch('/api/auth/me');
       const data = await res.json();
       if (!res.ok || !data.authenticated) {
-        router.push('/login');
+        router.push('/');
         return;
       }
       setUser(data.user);
     } catch (err) {
-      router.push('/login');
+      router.push('/');
     } finally {
       setLoading(false);
     }

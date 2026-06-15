@@ -61,13 +61,13 @@ function DashboardContent() {
       const res = await fetch('/api/auth/me');
       const data = await res.json();
       if (!res.ok || !data.authenticated) {
-        router.push('/login');
+        router.push('/');
         return null;
       }
       setUser(data.user);
       return data.user;
     } catch (error) {
-      router.push('/login');
+      router.push('/');
       return null;
     }
   };
