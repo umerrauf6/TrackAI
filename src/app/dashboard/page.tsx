@@ -2,15 +2,19 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { JobApplication, UserSession } from '../types/job';
-import Header from '../components/Header';
 import KanbanBoard from '../components/KanbanBoard';
 import AnalyticsSection from '../components/AnalyticsSection';
 import AddJobModal from '../components/AddJobModal';
 import JobDetailsDrawer from '../components/JobDetailsDrawer';
 import GmailSimulator from '../components/GmailSimulator';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertCircle, CheckCircle, RefreshCw, X, Trash2 } from 'lucide-react';
+import { 
+  AlertCircle, CheckCircle, RefreshCw, X, Trash2, Search, 
+  LayoutGrid, Award, Archive, Bell, Mail, Plus, Zap, LogOut, 
+  TrendingUp, MessageSquare, ShieldCheck
+} from 'lucide-react';
 
 export default function Dashboard() {
   return (
@@ -51,6 +55,11 @@ function DashboardContent() {
   // Selection states
   const [selectedJobIds, setSelectedJobIds] = useState<string[]>([]);
   const [bulkDeleting, setBulkDeleting] = useState(false);
+  
+  // Navigation & Search states
+  const [activeTab, setActiveTab] = useState<'overview' | 'pipeline'>('pipeline');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Alert banner states
   const [bannerError, setBannerError] = useState<string | null>(null);
@@ -69,6 +78,18 @@ function DashboardContent() {
     } catch (error) {
       router.push('/');
       return null;
+    }
+  };
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout error:', error);
+      setLoggingOut(false);
     }
   };
 
@@ -276,122 +297,304 @@ function DashboardContent() {
     );
   }
 
+  const filteredJobs = jobs.filter(j => 
+    j.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    j.position.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="dashboard-container" style={{ minHeight: '100vh' }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)', position: 'relative' }}>
       
-      {/* Dynamic Alerts Container */}
-      <AnimatePresence>
-        {bannerError && (
-          <motion.div
-            initial={{ height: 0, opacity: 0, y: -20 }}
-            animate={{ height: 'auto', opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: -20 }}
-            style={{
-              background: 'rgba(239, 68, 68, 0.1)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
-              borderRadius: 12,
-              padding: '12px 20px',
-              marginBottom: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: '#ef4444',
-              fontSize: 13,
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>{bannerError}</span>
+      {/* Background spotlights */}
+      <div className="ambient-glow-1"></div>
+      <div className="ambient-glow-2"></div>
+
+      {/* Left Sidebar */}
+      <div className="sidebar">
+        <div>
+          {/* Brand Logo & Name */}
+          <div className="sidebar-brand">
+            <h2 className="brand-font" style={{ fontSize: 20, fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: 8 }}>
+              <ShieldCheck size={20} color="var(--gold-primary)" />
+              Executive OS
+            </h2>
+            <span style={{ fontSize: 9, color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.08em', marginTop: 4, display: 'block' }}>
+              PLATINUM MEMBER
+            </span>
+          </div>
+
+          {/* Menu Items */}
+          <div className="sidebar-menu">
+            <div 
+              className={`sidebar-item ${activeTab === 'overview' ? 'active' : ''}`}
+              onClick={() => setActiveTab('overview')}
+            >
+              <TrendingUp size={16} />
+              Overview
             </div>
-            <button onClick={() => setBannerError(null)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
-              <X size={16} />
-            </button>
-          </motion.div>
-        )}
-
-        {bannerSuccess && (
-          <motion.div
-            initial={{ height: 0, opacity: 0, y: -20 }}
-            animate={{ height: 'auto', opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: -20 }}
-            style={{
-              background: 'rgba(16, 185, 129, 0.1)',
-              border: '1px solid rgba(16, 185, 129, 0.2)',
-              borderRadius: 12,
-              padding: '12px 20px',
-              marginBottom: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: '#10b981',
-              fontSize: 13,
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <CheckCircle size={18} style={{ flexShrink: 0 }} />
-              <span>{bannerSuccess}</span>
+            <div 
+              className={`sidebar-item ${activeTab === 'pipeline' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pipeline')}
+            >
+              <LayoutGrid size={16} />
+              Pipeline
             </div>
-            <button onClick={() => setBannerSuccess(null)} style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer' }}>
-              <X size={16} />
-            </button>
-          </motion.div>
-        )}
-
-        {syncResult && (
-          <motion.div
-            initial={{ height: 0, opacity: 0, y: -20 }}
-            animate={{ height: 'auto', opacity: 1, y: 0 }}
-            exit={{ height: 0, opacity: 0, y: -20 }}
-            style={{
-              background: 'rgba(139, 92, 246, 0.1)',
-              border: '1px solid rgba(139, 92, 246, 0.2)',
-              borderRadius: 12,
-              padding: '12px 20px',
-              marginBottom: 20,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: '#a78bfa',
-              fontSize: 13,
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <CheckCircle size={18} style={{ flexShrink: 0 }} />
-              <span>{syncResult}</span>
+            <div className="sidebar-item">
+              <Award size={16} />
+              Intelligence
             </div>
-            <button onClick={() => setSyncResult(null)} style={{ background: 'transparent', border: 'none', color: '#a78bfa', cursor: 'pointer' }}>
-              <X size={16} />
+            <div className="sidebar-item">
+              <MessageSquare size={16} />
+              Coaching
+            </div>
+            <div className="sidebar-item">
+              <Archive size={16} />
+              Archive
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Section */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {activeTab === 'pipeline' ? (
+            <button className="btn btn-primary w-full" onClick={() => setIsAddModalOpen(true)} style={{ borderRadius: 12, justifyContent: 'center' }}>
+              <Plus size={16} /> New Application
             </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          ) : (
+            <button className="btn btn-primary w-full" style={{ borderRadius: 12, justifyContent: 'center' }}>
+              Upgrade to Platinum
+            </button>
+          )}
 
-      {/* Main SaaS Dashboard Header Area */}
-      <Header
-        user={user}
-        jobs={jobs}
-        onAddJobClick={() => setIsAddModalOpen(true)}
-        onOpenSimulatorClick={() => setIsSimulatorOpen(true)}
-        onSyncGmailClick={handleSyncGmail}
-        syncing={syncing}
-      />
+          {activeTab === 'pipeline' ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', fontSize: 11, color: 'var(--text-muted)' }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
+              Cloud Synced
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer' }}>
+              <span style={{ fontSize: 13 }}>?</span>
+              Support Center
+            </div>
+          )}
+        </div>
+      </div>
 
-      {/* Analytics Graph Metric Details */}
-      <AnalyticsSection jobs={jobs} />
+      {/* Main Content Pane */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+        
+        {/* Top Navbar */}
+        <div className="top-bar">
+          <div className="top-bar-left">
+            <div className="top-bar-search">
+              <Search size={15} />
+              <input
+                type="text"
+                placeholder={activeTab === 'pipeline' ? "Search executive pipeline..." : "Global Sync Intelligence..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            
+            {/* Sync actions directly in top-bar */}
+            <button 
+              onClick={handleSyncGmail}
+              disabled={syncing}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: syncing ? 'var(--gold-primary)' : 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6
+              }}
+            >
+              {syncing && <RefreshCw size={12} className="animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />}
+              Global Sync
+            </button>
 
-      {/* Core Kanban drag-and-drop Board stages */}
-      <KanbanBoard
-        jobs={jobs}
-        onCardClick={(job) => setSelectedJob(job)}
-        onStatusChange={handleStatusChange}
-        selectedJobIds={selectedJobIds}
-        onToggleSelectJob={handleToggleSelectJob}
-      />
+            <button 
+              onClick={() => setIsSimulatorOpen(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 500
+              }}
+            >
+              Quick Actions
+            </button>
+          </div>
 
-      {/* Modals & Slide-out Drawers */}
+          <div className="top-bar-right">
+            <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+              <Bell size={18} />
+            </button>
+
+            <button 
+              onClick={() => setIsSimulatorOpen(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer'
+              }}
+              title="Open Gmail Simulator"
+            >
+              <Zap size={18} color="var(--gold-primary)" />
+            </button>
+
+            <div style={{ width: 1, height: 20, background: 'var(--border-color)' }}></div>
+
+            {/* Profile Dropdown */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{user.name}</span>
+                <span style={{ fontSize: 9, color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.05em' }}>PLATINUM MEMBER</span>
+              </div>
+              <Link href="/profile" style={{ textDecoration: 'none' }}>
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: 'var(--gold-soft)',
+                  border: '1px solid var(--gold-border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--gold-primary)',
+                  fontSize: 12,
+                  fontWeight: 700
+                }}>
+                  {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                </div>
+              </Link>
+              <button 
+                onClick={handleLogout}
+                disabled={loggingOut}
+                style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}
+                title="Logout"
+              >
+                <LogOut size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Dashboard Dynamic Content Area */}
+        <div style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
+          
+          {/* Dynamic Alerts */}
+          <AnimatePresence>
+            {bannerError && (
+              <motion.div
+                initial={{ height: 0, opacity: 0, y: -20 }}
+                animate={{ height: 'auto', opacity: 1, y: 0 }}
+                exit={{ height: 0, opacity: 0, y: -20 }}
+                style={{
+                  background: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid rgba(239, 68, 68, 0.2)',
+                  borderRadius: 12,
+                  padding: '12px 20px',
+                  marginBottom: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  color: '#ef4444',
+                  fontSize: 13,
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <AlertCircle size={18} style={{ flexShrink: 0 }} />
+                  <span>{bannerError}</span>
+                </div>
+                <button onClick={() => setBannerError(null)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
+                  <X size={16} />
+                </button>
+              </motion.div>
+            )}
+
+            {bannerSuccess && (
+              <motion.div
+                initial={{ height: 0, opacity: 0, y: -20 }}
+                animate={{ height: 'auto', opacity: 1, y: 0 }}
+                exit={{ height: 0, opacity: 0, y: -20 }}
+                style={{
+                  background: 'rgba(16, 185, 129, 0.1)',
+                  border: '1px solid rgba(16, 185, 129, 0.2)',
+                  borderRadius: 12,
+                  padding: '12px 20px',
+                  marginBottom: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  color: '#10b981',
+                  fontSize: 13,
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <CheckCircle size={18} style={{ flexShrink: 0 }} />
+                  <span>{bannerSuccess}</span>
+                </div>
+                <button onClick={() => setBannerSuccess(null)} style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer' }}>
+                  <X size={16} />
+                </button>
+              </motion.div>
+            )}
+
+            {syncResult && (
+              <motion.div
+                initial={{ height: 0, opacity: 0, y: -20 }}
+                animate={{ height: 'auto', opacity: 1, y: 0 }}
+                exit={{ height: 0, opacity: 0, y: -20 }}
+                style={{
+                  background: 'rgba(212, 175, 55, 0.1)',
+                  border: '1px solid rgba(212, 175, 55, 0.2)',
+                  borderRadius: 12,
+                  padding: '12px 20px',
+                  marginBottom: 20,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  color: 'var(--gold-primary)',
+                  fontSize: 13,
+                  overflow: 'hidden'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <CheckCircle size={18} style={{ flexShrink: 0 }} />
+                  <span>{syncResult}</span>
+                </div>
+                <button onClick={() => setSyncResult(null)} style={{ background: 'transparent', border: 'none', color: 'var(--gold-primary)', cursor: 'pointer' }}>
+                  <X size={16} />
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Conditional Overview (Analytics) vs Pipeline (Kanban) View */}
+          {activeTab === 'overview' ? (
+            <AnalyticsSection jobs={jobs} />
+          ) : (
+            <KanbanBoard
+              jobs={filteredJobs}
+              onCardClick={(job) => setSelectedJob(job)}
+              onStatusChange={handleStatusChange}
+              selectedJobIds={selectedJobIds}
+              onToggleSelectJob={handleToggleSelectJob}
+            />
+          )}
+        </div>
+      </div>
+
+      {/* Modals & Drawers */}
       <AddJobModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -437,8 +640,8 @@ function DashboardContent() {
               display: 'flex',
               alignItems: 'center',
               gap: 20,
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(139, 92, 246, 0.2)',
-              border: '1px solid rgba(139, 92, 246, 0.3)',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.2)',
+              border: '1px solid rgba(212, 175, 55, 0.3)',
               background: 'rgba(10, 11, 16, 0.85)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
@@ -447,7 +650,7 @@ function DashboardContent() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{
                 background: 'var(--accent)',
-                color: 'white',
+                color: 'var(--bg-primary)',
                 borderRadius: '50%',
                 width: 20,
                 height: 20,
@@ -489,7 +692,8 @@ function DashboardContent() {
                   borderRadius: 20,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6
+                  gap: 6,
+                  color: 'white'
                 }}
               >
                 <Trash2 size={13} />
@@ -499,6 +703,49 @@ function DashboardContent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Collapsible sync console widget (Intelligence Engine) when in pipeline mode */}
+      {activeTab === 'pipeline' && (
+        <div style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 85,
+          width: 320,
+          background: '#0c0c0e',
+          border: '1px solid var(--border-color)',
+          borderRadius: 12,
+          boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+          overflow: 'hidden',
+          fontFamily: 'monospace',
+          fontSize: 10
+        }}>
+          {/* Header */}
+          <div style={{
+            background: '#16161a',
+            padding: '8px 12px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            borderBottom: '1px solid var(--border-color)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#A1A1AA', fontWeight: 600 }}>
+              <ShieldCheck size={12} color="var(--gold-primary)" />
+              INTELLIGENCE ENGINE v4.2
+            </div>
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }}></div>
+          </div>
+          {/* Console Output */}
+          <div style={{ padding: 12, maxHeight: 110, overflowY: 'auto', color: '#71717A', lineHeight: 1.4 }}>
+            <div>[SYSTEM] Bootstrapping intelligence protocols...</div>
+            <div style={{ color: '#A1A1AA' }}>[SECURE] Establishing encrypted handshake with Google OAuth</div>
+            <div>[SCAN] Analyzing inbox telemetry for matching vectors</div>
+            <div style={{ color: '#D4AF37' }}>>> IDENTIFIED: Sync Engine Active</div>
+            <div style={{ color: '#10b981' }}>>> SUCCESS: Pipeline state synchronized. Monitoring active.</div>
+            <div>EXECUTIVE_OS_STABLE_</div>
+          </div>
+        </div>
+      )}
 
       {/* Global Spinner Style Rule */}
       <style jsx global>{`

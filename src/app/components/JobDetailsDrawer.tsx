@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { JobApplication, ChecklistItem } from '../types/job';
-import { X, Trash2, Calendar, Link as LinkIcon, Sparkles, CheckSquare, Plus, Mail, Clock, DollarSign } from 'lucide-react';
+import { X, Trash2, Calendar, Link as LinkIcon, CheckSquare, Plus, Mail, Clock, DollarSign, FileText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface JobDetailsDrawerProps {
@@ -23,6 +23,9 @@ export default function JobDetailsDrawer({
   const [salary, setSalary] = useState(job.salary);
   const [url, setUrl] = useState(job.url);
   const [newTaskText, setNewTaskText] = useState('');
+  
+  // Tab states
+  const [activeTab, setActiveTab] = useState<'summary' | 'actions' | 'log'>('summary');
   
   // Save indicators
   const [savingNotes, setSavingNotes] = useState(false);
@@ -82,6 +85,20 @@ export default function JobDetailsDrawer({
     }
   };
 
+  const tabStyle = (tab: typeof activeTab) => ({
+    padding: '12px 0',
+    fontSize: 11,
+    fontWeight: 700,
+    color: activeTab === tab ? '#FAFAFA' : 'var(--text-muted)',
+    borderBottom: activeTab === tab ? '2px solid var(--gold-primary)' : '2px solid transparent',
+    cursor: 'pointer',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+    transition: 'all 0.2s ease',
+    background: 'none',
+    border: 'none',
+  });
+
   return (
     <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', justifyContent: 'flex-end' }}>
       
@@ -94,9 +111,9 @@ export default function JobDetailsDrawer({
         style={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.6)',
-          backdropFilter: 'blur(4px)',
-          WebkitBackdropFilter: 'blur(4px)'
+          background: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)'
         }}
       />
 
@@ -116,217 +133,248 @@ export default function JobDetailsDrawer({
           borderLeft: '1px solid var(--border-color)',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '-10px 0 40px rgba(0,0,0,0.5)'
+          boxShadow: '-15px 0 50px rgba(0,0,0,0.6)',
+          background: '#09090b',
         }}
       >
         
         {/* Header Drawer */}
         <div style={{
-          padding: '24px 30px',
+          padding: '24px 30px 10px 30px',
           borderBottom: '1px solid var(--border-color)',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          background: 'rgba(0,0,0,0.1)'
+          flexDirection: 'column',
+          gap: 12,
+          background: '#111113'
         }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 4 }}>
-              <span className={`status-tag status-${job.status}`}>{job.status}</span>
-              {job.source === 'gmail' && (
-                <span style={{ fontSize: 10, display: 'flex', alignItems: 'center', gap: 4, color: '#10b981' }}>
-                  <Mail size={12} /> Sync Auto-detected
-                </span>
-              )}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{
+                width: 40,
+                height: 40,
+                borderRadius: 8,
+                background: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.08)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--gold-primary)',
+                fontWeight: 700,
+                fontSize: 18,
+                fontFamily: 'var(--font-header)'
+              }}>
+                {job.company[0].toUpperCase()}
+              </div>
+              <div>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'white', margin: 0, fontFamily: 'var(--font-header)' }}>
+                  {job.position}
+                </h2>
+                <p style={{ fontSize: 13, color: 'var(--gold-primary)', fontWeight: 600, margin: 0 }}>
+                  {job.company}
+                </p>
+              </div>
             </div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: 'white' }}>{job.company}</h2>
-            <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>{job.position}</p>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <button 
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 8 }}
+                title="Delete application"
+              >
+                <Trash2 size={16} />
+              </button>
+              <button 
+                onClick={onClose} 
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%', color: 'white', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <X size={14} />
+              </button>
+            </div>
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button 
-              onClick={handleDelete}
-              disabled={deleting}
-              className="btn btn-text" 
-              style={{ color: '#ef4444', padding: 8, borderRadius: '50%' }}
-              title="Delete application"
-            >
-              <Trash2 size={18} />
-            </button>
-            <button 
-              onClick={onClose} 
-              className="btn btn-text" 
-              style={{ padding: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', color: 'white' }}
-            >
-              <X size={18} />
-            </button>
+
+          {/* Navigation Tabs */}
+          <div style={{ display: 'flex', gap: 24, borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: 8 }}>
+            <button style={tabStyle('summary')} onClick={() => setActiveTab('summary')}>Executive Summary</button>
+            <button style={tabStyle('actions')} onClick={() => setActiveTab('actions')}>Action Items</button>
+            <button style={tabStyle('log')} onClick={() => setActiveTab('log')}>Intelligence Log</button>
           </div>
         </div>
 
         {/* Content Body */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '30px', display: 'flex', flexDirection: 'column', gap: 24 }}>
           
-          {/* Metadata Section */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 16,
-            background: 'rgba(0,0,0,0.2)',
-            padding: 16,
-            borderRadius: 10,
-            border: '1px solid var(--border-color)'
-          }}>
-            <div>
-              <label><DollarSign size={12} style={{ display: 'inline', marginRight: 4 }} /> Salary</label>
-              <input 
-                type="text" 
-                value={salary} 
-                onChange={(e) => setSalary(e.target.value)} 
-                onBlur={handleUpdateMeta}
-                style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.2)' }}
-              />
-            </div>
-            <div>
-              <label><LinkIcon size={12} style={{ display: 'inline', marginRight: 4 }} /> Application URL</label>
-              <input 
-                type="text" 
-                value={url} 
-                onChange={(e) => setUrl(e.target.value)} 
-                onBlur={handleUpdateMeta}
-                placeholder="Link to posting"
-                style={{ padding: '8px 12px', background: 'rgba(0,0,0,0.2)' }}
-              />
-            </div>
-          </div>
+          {/* TAB 1: EXECUTIVE SUMMARY */}
+          {activeTab === 'summary' && (
+            <>
+              {/* Metadata Info Boxes */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+                <div style={{ background: '#111113', border: '1px solid var(--border-color)', borderRadius: 16, padding: 16 }}>
+                  <label style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Package Range</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <DollarSign size={14} color="var(--gold-primary)" />
+                    <input 
+                      type="text" 
+                      value={salary} 
+                      onChange={(e) => setSalary(e.target.value)} 
+                      onBlur={handleUpdateMeta}
+                      style={{ padding: 0, background: 'transparent', border: 'none', fontSize: 16, fontWeight: 700, color: 'var(--gold-primary)', fontFamily: 'var(--font-header)' }}
+                    />
+                  </div>
+                </div>
+                <div style={{ background: '#111113', border: '1px solid var(--border-color)', borderRadius: 16, padding: 16 }}>
+                  <label style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Posting Location URL</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <LinkIcon size={14} color="var(--text-secondary)" />
+                    <input 
+                      type="text" 
+                      value={url} 
+                      onChange={(e) => setUrl(e.target.value)} 
+                      onBlur={handleUpdateMeta}
+                      placeholder="No Link Provided"
+                      style={{ padding: 0, background: 'transparent', border: 'none', fontSize: 14, fontWeight: 700, color: '#FAFAFA' }}
+                    />
+                  </div>
+                </div>
+              </div>
 
-          {/* Email Info (If Gmail Synced) */}
-          {job.source === 'gmail' && job.emailSender && (
-            <div style={{ background: 'rgba(16, 185, 129, 0.04)', border: '1px solid rgba(16, 185, 129, 0.15)', borderRadius: 10, padding: 16 }}>
-              <h4 style={{ fontSize: 13, color: '#10b981', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8 }}>
-                <Mail size={14} /> Gmail Sync Log
-              </h4>
-              <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
-                <strong>Sender:</strong> {job.emailSender}
-              </p>
-              <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                Detected and parsed via AI engine. Reference ID: {job.gmailMessageId}
-              </p>
+              {/* Notes: Position Profile */}
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <h4 style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <FileText size={14} /> Position Profile
+                </h4>
+                <textarea
+                  rows={12}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  onBlur={handleNotesBlur}
+                  placeholder="Paste details, logs, or comments here. Autosaved on blur."
+                  style={{ resize: 'vertical', lineHeight: 1.6, padding: 16, background: '#111113', border: '1px solid var(--border-color)', borderRadius: 16 }}
+                />
+                {savingNotes && <span style={{ fontSize: 11, color: 'var(--gold-primary)', marginTop: 4 }}>Saving profile...</span>}
+              </div>
+            </>
+          )}
+
+          {/* TAB 2: ACTION ITEMS */}
+          {activeTab === 'actions' && (
+            <div>
+              <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <CheckSquare size={14} /> Preparation Checklist
+              </h3>
+              
+              {/* Task list */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
+                {job.checklist.length > 0 ? (
+                  job.checklist.map((task) => (
+                    <div 
+                      key={task.id} 
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        background: '#111113',
+                        border: '1px solid var(--border-color)',
+                        padding: '12px 16px',
+                        borderRadius: 12
+                      }}
+                    >
+                      <label style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 0, cursor: 'pointer', flex: 1 }}>
+                        <input
+                          type="checkbox"
+                          checked={task.completed}
+                          onChange={() => handleToggleTask(task.id, task.completed)}
+                          style={{ width: 15, height: 15, cursor: 'pointer', accentColor: 'var(--gold-primary)' }}
+                        />
+                        <span style={{
+                          textDecoration: task.completed ? 'line-through' : 'none',
+                          color: task.completed ? 'var(--text-muted)' : 'var(--text-primary)',
+                          fontSize: 13
+                        }}>
+                          {task.text}
+                        </span>
+                      </label>
+                      <button
+                        onClick={() => handleDeleteTask(task.id)}
+                        style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 2 }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '20px 0' }}>No preparation items listed.</p>
+                )}
+              </div>
+
+              {/* Add task form */}
+              <form onSubmit={handleAddTask} style={{ display: 'flex', gap: 8 }}>
+                <input
+                  type="text"
+                  value={newTaskText}
+                  onChange={(e) => setNewTaskText(e.target.value)}
+                  placeholder="Insert checklist item..."
+                  style={{ padding: '10px 14px', flex: 1, background: '#111113', border: '1px solid var(--border-color)', borderRadius: 12 }}
+                />
+                <button type="submit" className="btn btn-secondary" style={{ padding: '10px 14px', borderRadius: 12 }}>
+                  <Plus size={16} />
+                </button>
+              </form>
             </div>
           )}
 
-          {/* Notes Editor */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <label style={{ marginBottom: 0 }}>Application Notes</label>
-              {savingNotes && <span style={{ fontSize: 11, color: 'var(--accent)' }}>Saving...</span>}
-            </div>
-            <textarea
-              rows={6}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              onBlur={handleNotesBlur}
-              placeholder="Paste job descriptions, recruiter contacts, or interview details here. Autosaver saves changes on click-away."
-              style={{ resize: 'vertical', lineHeight: 1.5 }}
-            />
-          </div>
-
-          {/* Checklist Section */}
-          <div>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <CheckSquare size={16} /> Interview Prep Checklist
-            </h3>
-            
-            {/* Task list */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
-              {job.checklist.length > 0 ? (
-                job.checklist.map((task) => (
-                  <div 
-                    key={task.id} 
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      background: 'rgba(255,255,255,0.01)',
-                      border: '1px solid var(--border-color)',
-                      padding: '10px 14px',
-                      borderRadius: 8
-                    }}
-                  >
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 0, cursor: 'pointer', flex: 1 }}>
-                      <input
-                        type="checkbox"
-                        checked={task.completed}
-                        onChange={() => handleToggleTask(task.id, task.completed)}
-                        style={{ width: 16, height: 16, cursor: 'pointer' }}
-                      />
-                      <span style={{
-                        textDecoration: task.completed ? 'line-through' : 'none',
-                        color: task.completed ? 'var(--text-muted)' : 'var(--text-primary)',
-                        fontSize: 13
-                      }}>
-                        {task.text}
-                      </span>
-                    </label>
-                    <button
-                      onClick={() => handleDeleteTask(task.id)}
-                      style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: 2 }}
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                ))
-              ) : (
-                <p style={{ fontSize: 12, color: 'var(--text-muted)', textAlign: 'center', padding: '10px 0' }}>No custom tasks yet.</p>
-              )}
-            </div>
-
-            {/* Add task form */}
-            <form onSubmit={handleAddTask} style={{ display: 'flex', gap: 8 }}>
-              <input
-                type="text"
-                value={newTaskText}
-                onChange={(e) => setNewTaskText(e.target.value)}
-                placeholder="Add preparation task..."
-                style={{ padding: '8px 12px', flex: 1 }}
-              />
-              <button type="submit" className="btn btn-secondary" style={{ padding: '8px 12px' }}>
-                <Plus size={16} />
-              </button>
-            </form>
-          </div>
-
-          {/* Timeline History */}
-          <div>
-            <h3 style={{ fontSize: 15, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-              <Clock size={16} /> Activity Log & History
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14, borderLeft: '1px solid var(--border-color)', marginLeft: 8, paddingLeft: 16 }}>
-              {job.history.map((event) => (
-                <div key={event.id} style={{ position: 'relative' }}>
-                  {/* Timeline bullet */}
-                  <div style={{
-                    position: 'absolute',
-                    left: -21,
-                    top: 4,
-                    width: 9,
-                    height: 9,
-                    borderRadius: '50%',
-                    background: `hsl(var(--status-${event.status}))`,
-                    border: '2px solid var(--bg-primary)'
-                  }}></div>
-                  
-                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                    {new Date(event.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                  <p style={{ fontSize: 12, color: 'var(--text-primary)', marginTop: 2 }}>
-                    <strong>{event.status}</strong>: {event.description}
+          {/* TAB 3: INTELLIGENCE LOG */}
+          {activeTab === 'log' && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+              {/* Gmail Sync Log metadata (if synced) */}
+              {job.source === 'gmail' && job.emailSender && (
+                <div style={{ background: 'rgba(212, 175, 55, 0.04)', border: '1px solid rgba(212, 175, 55, 0.15)', borderRadius: 16, padding: 16 }}>
+                  <h4 style={{ fontSize: 12, color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <Mail size={14} /> Gmail Sync Details
+                  </h4>
+                  <p style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
+                    <strong>Sender:</strong> {job.emailSender}
+                  </p>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    AI Sync Reference: {job.gmailMessageId?.split(',')[0]}
                   </p>
                 </div>
-              ))}
+              )}
+
+              {/* History Timeline */}
+              <div>
+                <h3 style={{ fontSize: 12, fontWeight: 700, color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <Clock size={14} /> Activity History Log
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderLeft: '1px solid var(--border-color)', marginLeft: 8, paddingLeft: 16 }}>
+                  {job.history.map((event) => (
+                    <div key={event.id} style={{ position: 'relative' }}>
+                      {/* Timeline bullet */}
+                      <div style={{
+                        position: 'absolute',
+                        left: -21,
+                        top: 4,
+                        width: 9,
+                        height: 9,
+                        borderRadius: '50%',
+                        background: `hsl(var(--status-${event.status}))`,
+                        border: '2px solid var(--bg-primary)'
+                      }}></div>
+                      
+                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                        {new Date(event.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      <p style={{ fontSize: 12, color: 'var(--text-primary)', marginTop: 2 }}>
+                        <strong>{event.status}</strong>: {event.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
+          )}
 
         </div>
       </motion.div>
     </div>
   );
-}

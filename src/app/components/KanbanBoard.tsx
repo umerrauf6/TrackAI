@@ -4,6 +4,7 @@ import { JobApplication } from '../types/job';
 import JobCard from './JobCard';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { MoreHorizontal } from 'lucide-react';
 
 interface KanbanBoardProps {
   jobs: JobApplication[];
@@ -53,8 +54,8 @@ export default function KanbanBoard({
     <div style={{
       display: 'grid',
       gridTemplateColumns: 'repeat(5, 1fr)',
-      gap: 16,
-      minHeight: '65vh',
+      gap: 24,
+      minHeight: '70vh',
       overflowX: 'auto',
       paddingBottom: 20
     }}>
@@ -68,15 +69,14 @@ export default function KanbanBoard({
             onDragOver={(e) => handleDragOver(e, col.id)}
             onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e, col.id)}
-            className="glass-panel"
             style={{
-              padding: 16,
-              borderRadius: 14,
+              padding: 8,
+              borderRadius: 16,
               display: 'flex',
               flexDirection: 'column',
               gap: 16,
-              background: isHovered ? 'rgba(255, 255, 255, 0.05)' : 'var(--bg-card)',
-              borderColor: isHovered ? 'var(--accent)' : 'var(--border-color)',
+              background: isHovered ? 'rgba(212, 175, 55, 0.03)' : 'transparent',
+              border: isHovered ? '1px dashed var(--gold-border)' : '1px solid transparent',
               minWidth: 220,
               transition: 'background 0.2s ease, border-color 0.2s ease'
             }}
@@ -86,33 +86,37 @@ export default function KanbanBoard({
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              borderBottom: `2px solid hsla(var(--status-${col.id}), 0.3)`,
-              paddingBottom: 10
+              marginBottom: 4,
+              paddingBottom: 4
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span className={`status-dot status-${col.id}-dot`} style={{ width: 10, height: 10 }}></span>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white' }}>{col.label}</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span className={`status-dot status-${col.id}-dot`} style={{ width: 8, height: 8 }}></span>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', fontFamily: 'var(--font-header)' }}>{col.label}</h3>
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: 'var(--text-secondary)',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  padding: '2px 8px',
+                  borderRadius: 12
+                }}>
+                  {columnJobs.length}
+                </span>
               </div>
-              <span style={{
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--text-secondary)',
-                background: 'rgba(255,255,255,0.05)',
-                padding: '2px 8px',
-                borderRadius: 10
-              }}>
-                {columnJobs.length}
-              </span>
+              
+              <button style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <MoreHorizontal size={14} />
+              </button>
             </div>
 
             {/* Column Cards Container */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              gap: 12,
+              gap: 16,
               flex: 1,
               overflowY: 'auto',
-              maxHeight: '60vh',
+              maxHeight: '65vh',
               minHeight: 120
             }}>
               {columnJobs.length > 0 ? (
@@ -138,8 +142,8 @@ export default function KanbanBoard({
               ) : (
                 <div style={{
                   border: '1px dashed var(--border-color)',
-                  borderRadius: 10,
-                  padding: '20px 10px',
+                  borderRadius: 16,
+                  padding: '30px 10px',
                   textAlign: 'center',
                   color: 'var(--text-muted)',
                   fontSize: 11,
@@ -148,7 +152,7 @@ export default function KanbanBoard({
                   justifyContent: 'center',
                   flex: 1
                 }}>
-                  No jobs tracking in {col.label}
+                  No applications in {col.label}
                 </div>
               )}
             </div>

@@ -54,26 +54,27 @@ export default function JobCard({
   return (
     <motion.div
       layoutId={`card-${job.id}`}
-      whileHover={{ y: -4, scale: 1.01, boxShadow: isSelected ? '0 12px 24px rgba(139, 92, 246, 0.25)' : '0 12px 24px rgba(0,0,0,0.2)' }}
+      whileHover={{ 
+        y: -4, 
+        scale: 1.01, 
+        boxShadow: isSelected 
+          ? '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.2)' 
+          : '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 20px rgba(255, 255, 255, 0.02)' 
+      }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
       onClick={() => onCardClick(job)}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="glass-panel"
+      className="glass-card"
       style={{
         position: 'relative',
-        padding: 16,
-        borderRadius: 12,
-        background: isSelected ? 'rgba(139, 92, 246, 0.05)' : 'rgba(255, 255, 255, 0.02)',
+        padding: '20px 24px',
         cursor: 'pointer',
-        borderLeft: `4px solid hsl(var(--status-${job.status}))`,
-        borderTop: isSelected ? '1px solid rgba(139, 92, 246, 0.4)' : undefined,
-        borderRight: isSelected ? '1px solid rgba(139, 92, 246, 0.4)' : undefined,
-        borderBottom: isSelected ? '1px solid rgba(139, 92, 246, 0.4)' : undefined,
-        boxShadow: isSelected ? '0 0 15px rgba(139, 92, 246, 0.15)' : undefined,
+        border: isSelected ? '1px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(255, 255, 255, 0.05)',
+        boxShadow: isSelected ? '0 0 20px rgba(212, 175, 55, 0.15)' : undefined,
         display: 'flex',
         flexDirection: 'column',
-        gap: 12
+        gap: 14
       }}
     >
       {/* Floating Selection Checkbox */}
@@ -83,11 +84,11 @@ export default function JobCard({
           position: 'absolute',
           top: 15,
           left: 16,
-          width: 18,
-          height: 18,
+          width: 16,
+          height: 16,
           borderRadius: 4,
-          border: isSelected ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.35)',
-          background: isSelected ? 'var(--accent)' : 'rgba(10, 11, 16, 0.8)',
+          border: isSelected ? '1px solid var(--gold-primary)' : '1px solid rgba(255, 255, 255, 0.3)',
+          background: isSelected ? 'var(--gold-primary)' : 'rgba(10, 11, 16, 0.8)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -97,62 +98,82 @@ export default function JobCard({
           transition: 'opacity 0.2s ease, background-color 0.2s ease'
         }}
       >
-        {isSelected && <Check size={11} color="white" strokeWidth={3} />}
+        {isSelected && <Check size={10} color="#09090B" strokeWidth={3} />}
       </div>
-      {/* Top Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+
+      {/* Row 1: Logo Icon Box & Suffix Tag */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{
+          width: 32,
+          height: 32,
+          borderRadius: 8,
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'var(--gold-primary)',
+          fontWeight: 700,
+          fontSize: 14,
+          fontFamily: 'var(--font-header)'
+        }}>
+          {job.company[0].toUpperCase()}
+        </div>
+
+        <span style={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: job.source === 'gmail' ? 'var(--gold-primary)' : 'var(--text-secondary)',
+          background: job.source === 'gmail' ? 'rgba(212, 175, 55, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+          border: job.source === 'gmail' ? '1px solid rgba(212, 175, 55, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
+          padding: '3px 8px',
+          borderRadius: 20,
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase'
+        }}>
+          {job.source === 'gmail' ? 'Gmail Sync' : 'Manual'}
+        </span>
+      </div>
+
+      {/* Row 2: Title & Company */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         <h4 style={{ 
-          fontSize: 15, 
+          fontSize: 16, 
           fontWeight: 700, 
           color: 'white', 
           overflow: 'hidden', 
           textOverflow: 'ellipsis', 
-          whiteSpace: 'nowrap', 
-          maxWidth: 140,
-          paddingLeft: (selectionModeActive || isHovered || isSelected) ? 22 : 0,
-          transition: 'padding-left 0.2s ease'
+          whiteSpace: 'nowrap',
+          paddingLeft: (selectionModeActive || isHovered || isSelected) ? 14 : 0,
+          transition: 'padding-left 0.2s ease',
+          fontFamily: 'var(--font-header)'
         }}>
-          {job.company}
+          {job.position}
         </h4>
-        <span style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 4,
-          fontSize: 10,
-          color: job.source === 'gmail' ? '#10b981' : 'var(--text-muted)',
-          background: 'rgba(255,255,255,0.03)',
-          padding: '2px 6px',
-          borderRadius: 4,
-          border: '1px solid var(--border-color)'
-        }}>
-          {job.source === 'gmail' ? <Mail size={10} /> : <FileText size={10} />}
-          {job.source === 'gmail' ? 'Gmail' : 'Manual'}
-        </span>
+        <p style={{ fontSize: 13, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {job.company}
+        </p>
       </div>
 
-      {/* Position */}
-      <p style={{ fontSize: 13, color: 'var(--text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-        {job.position}
-      </p>
-
-      {/* Details Row */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 11, color: 'var(--text-muted)', background: 'rgba(0,0,0,0.1)', padding: 8, borderRadius: 6 }}>
-        {/* Salary */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <DollarSign size={12} color="var(--text-muted)" />
-          <span>{job.salary}</span>
-        </div>
+      {/* Row 3: Salary & Date */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, marginTop: 4 }}>
+        <span style={{ 
+          color: 'var(--gold-primary)', 
+          fontWeight: 700,
+          fontSize: 13
+        }}>
+          {job.salary === 'Not Specified' ? 'Salary: TBD' : job.salary}
+        </span>
         
-        {/* Date Applied */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-          <Calendar size={12} color="var(--text-muted)" />
-          <span>Applied: {new Date(job.dateApplied).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--text-muted)', fontSize: 11 }}>
+          <Calendar size={12} />
+          <span>{new Date(job.dateApplied).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
         </div>
       </div>
 
       {/* Checklist Progress Bar */}
       {totalTasks > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10, color: 'var(--text-muted)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}><CheckSquare size={10} /> Checklist</span>
             <span>{completedTasks}/{totalTasks}</span>
@@ -161,36 +182,55 @@ export default function JobCard({
             <div style={{
               height: '100%',
               width: `${(completedTasks / totalTasks) * 100}%`,
-              background: 'var(--accent)',
+              background: 'var(--gold-primary)',
               borderRadius: 2
             }}></div>
           </div>
         </div>
       )}
 
-      <div style={{ height: 1, background: 'var(--border-color)', margin: '4px 0' }}></div>
-
-      {/* Action Controls */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* Column Shift Action Controls */}
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        borderTop: '1px solid var(--border-color)',
+        paddingTop: 8,
+        marginTop: 4,
+        opacity: isHovered ? 1 : 0.4,
+        transition: 'opacity 0.2s ease'
+      }}>
         <button
           onClick={handlePrevStatus}
           disabled={currentIdx === 0}
-          className="btn btn-text"
-          style={{ padding: 4, borderRadius: 4, opacity: currentIdx === 0 ? 0.3 : 1 }}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            color: 'var(--text-muted)', 
+            cursor: currentIdx === 0 ? 'default' : 'pointer',
+            padding: 4,
+            opacity: currentIdx === 0 ? 0.2 : 1
+          }}
           title="Move back"
         >
           <ChevronLeft size={14} />
         </button>
 
-        <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-          Shift Stage
+        <span style={{ fontSize: 9, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Move Stage
         </span>
 
         <button
           onClick={handleNextStatus}
           disabled={currentIdx === statusOrder.length - 1}
-          className="btn btn-text"
-          style={{ padding: 4, borderRadius: 4, opacity: currentIdx === statusOrder.length - 1 ? 0.3 : 1 }}
+          style={{ 
+            background: 'none', 
+            border: 'none', 
+            color: 'var(--text-muted)', 
+            cursor: currentIdx === statusOrder.length - 1 ? 'default' : 'pointer',
+            padding: 4,
+            opacity: currentIdx === statusOrder.length - 1 ? 0.2 : 1
+          }}
           title="Move forward"
         >
           <ChevronRight size={14} />
