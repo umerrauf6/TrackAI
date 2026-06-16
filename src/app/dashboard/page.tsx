@@ -9,7 +9,6 @@ import AnalyticsSection from '../components/AnalyticsSection';
 import Logo from '../components/Logo';
 import AddJobModal from '../components/AddJobModal';
 import JobDetailsDrawer from '../components/JobDetailsDrawer';
-import GmailSimulator from '../components/GmailSimulator';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   AlertCircle, CheckCircle, RefreshCw, X, Trash2, Search, 
@@ -50,7 +49,6 @@ function DashboardContent() {
 
   // Overlay toggles
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<JobApplication | null>(null);
 
   // Selection states
@@ -152,15 +150,34 @@ function DashboardContent() {
     const gmailConnectedQuery = searchParams.get('gmail_connected');
 
     if (errorQuery === 'google_config_missing') {
-      setBannerError('Google API Credentials not configured in .env. Please configure them or use the Gmail Simulator.');
+      setBannerError('Google API Credentials not configured in .env. Please configure them.');
     } else if (errorQuery === 'google_auth_failed') {
       setBannerError('Gmail OAuth authentication was rejected or failed.');
     } else if (errorQuery === 'google_gmail_scope_missing') {
       setBannerError('Gmail Sync was not enabled because the Gmail access permission was not granted. Please reconnect Gmail and ensure the Gmail access checkbox is checked.');
-    } else if (gmailConnectedQuery === 'true') {
+    } else    if (gmailConnectedQuery === 'true') {
       setBannerSuccess('Gmail Account successfully linked! You can now trigger synchronization.');
     }
   }, [searchParams]);
+
+  // Auto-dismiss success and sync result notifications after 5 seconds
+  useEffect(() => {
+    if (bannerSuccess) {
+      const timer = setTimeout(() => {
+        setBannerSuccess(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [bannerSuccess]);
+
+  useEffect(() => {
+    if (syncResult) {
+      const timer = setTimeout(() => {
+        setSyncResult(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [syncResult]);
 
   // Synchronize real Gmail API
   const handleSyncGmail = async () => {
@@ -347,18 +364,6 @@ function DashboardContent() {
               <LayoutGrid size={16} />
               Pipeline
             </div>
-            <div className="sidebar-item">
-              <Award size={16} />
-              Intelligence
-            </div>
-            <div className="sidebar-item">
-              <MessageSquare size={16} />
-              Coaching
-            </div>
-            <div className="sidebar-item">
-              <Archive size={16} />
-              Archive
-            </div>
           </div>
         </div>
 
@@ -394,15 +399,17 @@ function DashboardContent() {
         {/* Top Navbar */}
         <div className="top-bar">
           <div className="top-bar-left">
-            <div className="top-bar-search">
-              <Search size={15} />
-              <input
-                type="text"
-                placeholder={activeTab === 'pipeline' ? "Search TrackAI pipeline..." : "Global Sync Intelligence..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
+            {activeTab === 'pipeline' && (
+              <div className="top-bar-search">
+                <Search size={15} />
+                <input
+                  type="text"
+                  placeholder="Search TrackAI pipeline..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+            )}
             
             {/* Sync actions directly in top-bar */}
             <button 
@@ -423,38 +430,11 @@ function DashboardContent() {
               {syncing && <RefreshCw size={12} className="animate-spin" style={{ animation: 'spin 1.5s linear infinite' }} />}
               Global Sync
             </button>
-
-            <button 
-              onClick={() => setIsSimulatorOpen(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer',
-                fontSize: 13,
-                fontWeight: 500
-              }}
-            >
-              Quick Actions
-            </button>
           </div>
 
           <div className="top-bar-right">
             <button style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
               <Bell size={18} />
-            </button>
-
-            <button 
-              onClick={() => setIsSimulatorOpen(true)}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: 'var(--text-secondary)',
-                cursor: 'pointer'
-              }}
-              title="Open Gmail Simulator"
-            >
-              <Zap size={18} color="var(--gold-primary)" />
             </button>
 
             <div style={{ width: 1, height: 20, background: 'var(--border-color)' }}></div>
@@ -631,15 +611,7 @@ function DashboardContent() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {isSimulatorOpen && (
-          <GmailSimulator
-            isOpen={isSimulatorOpen}
-            onClose={() => setIsSimulatorOpen(false)}
-            onNewJobSynced={fetchJobs}
-          />
-        )}
-      </AnimatePresence>
+
 
       {/* Floating Bulk Action Bar */}
       <AnimatePresence>
@@ -723,48 +695,7 @@ function DashboardContent() {
         )}
       </AnimatePresence>
 
-      {/* Collapsible sync console widget (Intelligence Engine) when in pipeline mode */}
-      {activeTab === 'pipeline' && (
-        <div style={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 85,
-          width: 320,
-          background: '#0c0c0e',
-          border: '1px solid var(--border-color)',
-          borderRadius: 12,
-          boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
-          overflow: 'hidden',
-          fontFamily: 'monospace',
-          fontSize: 10
-        }}>
-          {/* Header */}
-          <div style={{
-            background: '#16161a',
-            padding: '8px 12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid var(--border-color)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#A1A1AA', fontWeight: 600 }}>
-              <ShieldCheck size={12} color="var(--gold-primary)" />
-              INTELLIGENCE ENGINE v4.2
-            </div>
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981' }}></div>
-          </div>
-          {/* Console Output */}
-          <div style={{ padding: 12, maxHeight: 110, overflowY: 'auto', color: '#71717A', lineHeight: 1.4 }}>
-            <div>[SYSTEM] Bootstrapping intelligence protocols...</div>
-            <div style={{ color: '#A1A1AA' }}>[SECURE] Establishing encrypted handshake with Google OAuth</div>
-            <div>[SCAN] Analyzing inbox telemetry for matching vectors</div>
-            <div style={{ color: '#D4AF37' }}>&gt;&gt; IDENTIFIED: Sync Engine Active</div>
-            <div style={{ color: '#10b981' }}>&gt;&gt; SUCCESS: Pipeline state synchronized. Monitoring active.</div>
-            <div>TRACKAI_ENGINE_STABLE_</div>
-          </div>
-        </div>
-      )}
+
 
       {/* Global Spinner Style Rule */}
       <style jsx global>{`

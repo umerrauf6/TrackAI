@@ -238,6 +238,23 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
                 }}></div>
               </div>
             </div>
+
+            {/* Rejected */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
+                <span>Rejected / Archived</span>
+                <span style={{ color: 'white' }}>{rejected}</span>
+              </div>
+              <div style={{ height: 16, background: 'rgba(255,255,255,0.02)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${(rejected / maxVal) * 100}%`,
+                  background: 'linear-gradient(90deg, rgba(248, 113, 113, 0.15), rgba(248, 113, 113, 0.55))',
+                  borderRadius: 4,
+                  transition: 'width 1s ease-out'
+                }}></div>
+              </div>
+            </div>
           </div>
         </div>
 
