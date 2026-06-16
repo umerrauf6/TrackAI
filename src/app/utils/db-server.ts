@@ -288,6 +288,9 @@ export async function updateJob(userId: string, jobId: string, updates: Partial<
   if (updates.url !== undefined) data.url = updates.url;
   if (updates.notes !== undefined) data.notes = updates.notes;
   if (updates.dateApplied !== undefined) data.dateApplied = updates.dateApplied;
+  if (updates.gmailMessageId !== undefined) data.gmailMessageId = updates.gmailMessageId;
+  if (updates.emailSender !== undefined) data.emailSender = updates.emailSender;
+  if (updates.source !== undefined) data.source = updates.source;
 
   // Track status changes and log history
   const historyData = [];
