@@ -135,7 +135,7 @@ export default function LandingPage() {
             </div>
             
             {/* Visual Email to Card Stagger Demo */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16, textAlign: 'left' }}>
+            <div className="mockup-grid">
               <div className="glass-panel" style={{ padding: 16, background: 'rgba(0, 0, 0, 0.25)', borderRadius: 10 }}>
                 <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600 }}>INCOMING GMAIL DETECTED</span>
                 <h4 style={{ fontSize: 13, margin: '4px 0', color: 'white' }}>Google Careers</h4>

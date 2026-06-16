@@ -139,14 +139,7 @@ export default function JobDetailsDrawer({
       >
         
         {/* Header Drawer */}
-        <div style={{
-          padding: '24px 30px 10px 30px',
-          borderBottom: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 12,
-          background: '#111113'
-        }}>
+        <div className="details-drawer-header">
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{
@@ -202,13 +195,13 @@ export default function JobDetailsDrawer({
         </div>
 
         {/* Content Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '30px', display: 'flex', flexDirection: 'column', gap: 24 }}>
+        <div className="details-drawer-body">
           
           {/* TAB 1: EXECUTIVE SUMMARY */}
           {activeTab === 'summary' && (
             <>
               {/* Metadata Info Boxes */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-grid-2col">
                 <div style={{ background: '#111113', border: '1px solid var(--border-color)', borderRadius: 16, padding: 16 }}>
                   <label style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Package Range</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>

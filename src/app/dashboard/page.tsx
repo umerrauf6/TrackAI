@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   AlertCircle, CheckCircle, RefreshCw, X, Trash2, Search, 
   LayoutGrid, Award, Archive, Bell, Mail, Plus, Zap, LogOut, 
-  TrendingUp, MessageSquare, ShieldCheck
+  TrendingUp, MessageSquare, ShieldCheck, Menu
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -59,6 +59,7 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState<'overview' | 'pipeline'>('pipeline');
   const [searchQuery, setSearchQuery] = useState('');
   const [loggingOut, setLoggingOut] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   // Alert banner states
   const [bannerError, setBannerError] = useState<string | null>(null);
@@ -334,8 +335,23 @@ function DashboardContent() {
       <div className="ambient-glow-1"></div>
       <div className="ambient-glow-2"></div>
 
+      {/* Mobile Sidebar Overlay Backdrop */}
+      {mobileSidebarOpen && (
+        <div 
+          className="sidebar-backdrop" 
+          onClick={() => setMobileSidebarOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 95
+          }}
+        ></div>
+      )}
+
       {/* Left Sidebar */}
-      <div className="sidebar">
+      <div className={`sidebar ${mobileSidebarOpen ? 'mobile-open' : ''}`}>
         <div>
           {/* Brand Logo & Name */}
           <div className="sidebar-brand">
@@ -352,14 +368,14 @@ function DashboardContent() {
           <div className="sidebar-menu">
             <div 
               className={`sidebar-item ${activeTab === 'overview' ? 'active' : ''}`}
-              onClick={() => setActiveTab('overview')}
+              onClick={() => { setActiveTab('overview'); setMobileSidebarOpen(false); }}
             >
               <TrendingUp size={16} />
               Overview
             </div>
             <div 
               className={`sidebar-item ${activeTab === 'pipeline' ? 'active' : ''}`}
-              onClick={() => setActiveTab('pipeline')}
+              onClick={() => { setActiveTab('pipeline'); setMobileSidebarOpen(false); }}
             >
               <LayoutGrid size={16} />
               Pipeline
@@ -390,6 +406,22 @@ function DashboardContent() {
         {/* Top Navbar */}
         <div className="top-bar">
           <div className="top-bar-left">
+            {/* Hamburger Button for mobile */}
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="mobile-sidebar-toggle"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'white',
+                cursor: 'pointer',
+                padding: '4px 8px 4px 0',
+                alignItems: 'center'
+              }}
+            >
+              <Menu size={20} />
+            </button>
+
             {activeTab === 'pipeline' && (
               <div className="top-bar-search">
                 <Search size={15} />
@@ -466,7 +498,7 @@ function DashboardContent() {
         </div>
 
         {/* Dashboard Dynamic Content Area */}
-        <div style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
+        <div className="dashboard-content-area" style={{ flex: 1, padding: '40px', overflowY: 'auto' }}>
           
           {/* Dynamic Alerts */}
           <AnimatePresence>

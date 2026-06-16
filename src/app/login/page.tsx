@@ -76,7 +76,7 @@ function LoginContent() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="glass-panel"
+        className="glass-panel login-card"
         style={{
           width: '100%',
           maxWidth: 440,

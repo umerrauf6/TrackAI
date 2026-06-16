@@ -86,7 +86,7 @@ export default function AddJobModal({ isOpen, onClose, onAddJob }: AddJobModalPr
             initial={{ scale: 0.95, opacity: 0, y: 15 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.95, opacity: 0, y: 15 }}
-            className="glass-panel"
+            className="glass-panel add-job-modal-card"
             style={{
               position: 'relative',
               width: '100%',
@@ -134,7 +134,7 @@ export default function AddJobModal({ isOpen, onClose, onAddJob }: AddJobModalPr
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-grid-2col">
                 <div>
                   <label>Status / Stage</label>
                   <select
@@ -158,7 +158,7 @@ export default function AddJobModal({ isOpen, onClose, onAddJob }: AddJobModalPr
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div className="form-grid-2col">
                 <div>
                   <label>Salary (Optional)</label>
                   <input
