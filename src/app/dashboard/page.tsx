@@ -373,23 +373,14 @@ function DashboardContent() {
             <button className="btn btn-primary w-full" onClick={() => setIsAddModalOpen(true)} style={{ borderRadius: 12, justifyContent: 'center' }}>
               <Plus size={16} /> New Application
             </button>
-          ) : (
-            <button className="btn btn-primary w-full" style={{ borderRadius: 12, justifyContent: 'center' }}>
-              Upgrade to Platinum
-            </button>
-          )}
+          ) : null}
 
           {activeTab === 'pipeline' ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', fontSize: 11, color: 'var(--text-muted)' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block' }}></span>
               Cloud Synced
             </div>
-          ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '0 8px', fontSize: 11, color: 'var(--text-muted)', cursor: 'pointer' }}>
-              <span style={{ fontSize: 13 }}>?</span>
-              Support Center
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
 

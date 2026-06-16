@@ -47,14 +47,6 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             Advanced metrics for the career-focused executive. Real-time pipeline processing and velocity tracking.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', borderRadius: 8 }}>
-            Last 30 Days
-          </button>
-          <button className="btn btn-secondary" style={{ padding: 8, borderRadius: 8 }}>
-            <Filter size={16} />
-          </button>
-        </div>
       </div>
 
       {/* Row 1: KPI Metrics Cards */}
