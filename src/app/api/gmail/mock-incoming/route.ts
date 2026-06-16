@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyToken } from '@/app/utils/jwt-server';
-import { createJob, getUserJobs, updateUser } from '@/app/utils/db-server';
+import { getUserJobs, updateUser } from '@/app/utils/db-server';
 import { parseEmailWithAI } from '@/app/utils/ai-parser';
+import { upsertGmailJob } from '@/app/utils/sync-server';
 import crypto from 'crypto';
 
 function getAuthenticatedUserId(req: NextRequest): string | null {
@@ -31,11 +32,17 @@ export async function POST(req: NextRequest) {
 
     // Query active jobs to prevent duplicates
     const activeJobs = await getUserJobs(userId);
-    const isDuplicate = activeJobs.some(
-      j => j.source === 'gmail' && j.gmailMessageId === mockMessageId
-    );
+    const existingMessageIds = new Set<string>();
+    for (const j of activeJobs) {
+      if (j.gmailMessageId) {
+        j.gmailMessageId.split(',').forEach(id => {
+          const trimmed = id.trim();
+          if (trimmed) existingMessageIds.add(trimmed);
+        });
+      }
+    }
 
-    if (isDuplicate) {
+    if (existingMessageIds.has(mockMessageId)) {
       return NextResponse.json(
         { error: 'This email has already been synced and added.' },
         { status: 409 }
@@ -45,19 +52,8 @@ export async function POST(req: NextRequest) {
     // Run AI parser (powered by Groq)
     const parsedInfo = await parseEmailWithAI(subject, bodyText);
 
-    // Save job to db
-    const job = await createJob(userId, {
-      company: parsedInfo.company,
-      position: parsedInfo.position,
-      salary: parsedInfo.salary,
-      status: parsedInfo.status,
-      url: '',
-      notes: parsedInfo.notes,
-      dateApplied: new Date().toISOString().split('T')[0],
-      source: 'gmail',
-      gmailMessageId: mockMessageId,
-      emailSender: sender,
-    });
+    // Save or update job in DB
+    const job = await upsertGmailJob(userId, parsedInfo, mockMessageId, sender, activeJobs);
 
     // Update synced time
     await updateUser(userId, {

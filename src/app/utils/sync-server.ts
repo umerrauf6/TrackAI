@@ -1,4 +1,4 @@
-import { getUserById, updateUser, createJob, getUserJobs } from './db-server';
+import { getUserById, updateUser, createJob, getUserJobs, updateJob, JobApplication } from './db-server';
 import { parseEmailWithAI } from './ai-parser';
 
 // Helper to request a new access token using Google Refresh Token
@@ -86,6 +86,102 @@ function extractBodyText(payload: any): string {
   return '';
 }
 
+export function normalizeCompanyName(name: string): string {
+  const normalized = name
+    .toLowerCase()
+    .replace(/\b(gmbh|llc|inc|co|corp|corporation|ltd|ag|s\.a\.)\b/gi, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+  return normalized || name.toLowerCase().trim();
+}
+
+export async function upsertGmailJob(
+  userId: string,
+  parsedInfo: {
+    company: string;
+    position: string;
+    salary: string;
+    status: 'Bookmarked' | 'Applied' | 'Interviewing' | 'Offer' | 'Rejected';
+    notes: string;
+    isJobRelated: boolean;
+  },
+  messageId: string,
+  sender: string,
+  activeJobs: JobApplication[]
+): Promise<JobApplication> {
+  // Check if job for same company already exists
+  const existingJob = activeJobs.find(j => {
+    const dbCompany = j.company.toLowerCase().trim();
+    const parsedCompany = parsedInfo.company.toLowerCase().trim();
+    if (dbCompany === parsedCompany) return true;
+    
+    // Secondary check: normalize names to strip suffixes
+    return normalizeCompanyName(dbCompany) === normalizeCompanyName(parsedCompany);
+  });
+
+  if (existingJob) {
+    const STATUS_RANKS: Record<string, number> = {
+      'Bookmarked': 0,
+      'Applied': 1,
+      'Interviewing': 2,
+      'Rejected': 3,
+      'Offer': 4
+    };
+
+    const currentRank = STATUS_RANKS[existingJob.status] ?? -1;
+    const newRank = STATUS_RANKS[parsedInfo.status] ?? -1;
+    const shouldUpdateStatus = newRank > currentRank;
+
+    // Format date for notes update
+    const dateObj = new Date();
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const yyyy = dateObj.getFullYear();
+    const formattedDate = `${mm}/${dd}/${yyyy}`;
+
+    let updatedNotes = existingJob.notes || '';
+    if (parsedInfo.notes) {
+      const updateHeader = `\n\n[Update ${formattedDate}] `;
+      updatedNotes = updatedNotes ? `${updatedNotes}${updateHeader}${parsedInfo.notes}` : `[Update ${formattedDate}] ${parsedInfo.notes}`;
+    }
+
+    // Append the messageId to comma-separated list of gmailMessageIds
+    let updatedGmailMessageId = messageId;
+    if (existingJob.gmailMessageId) {
+      const messageIds = existingJob.gmailMessageId.split(',').map(id => id.trim()).filter(Boolean);
+      if (!messageIds.includes(messageId)) {
+        messageIds.push(messageId);
+      }
+      updatedGmailMessageId = messageIds.join(',');
+    }
+
+    const updates: any = {
+      notes: updatedNotes,
+      gmailMessageId: updatedGmailMessageId,
+      source: 'gmail',
+    };
+
+    if (shouldUpdateStatus) {
+      updates.status = parsedInfo.status;
+    }
+
+    return await updateJob(userId, existingJob.id, updates);
+  } else {
+    return await createJob(userId, {
+      company: parsedInfo.company,
+      position: parsedInfo.position,
+      salary: parsedInfo.salary,
+      status: parsedInfo.status,
+      url: '',
+      notes: parsedInfo.notes,
+      dateApplied: new Date().toISOString().split('T')[0],
+      source: 'gmail',
+      gmailMessageId: messageId,
+      emailSender: sender,
+    });
+  }
+}
+
 // Main logic to sync a single user's Gmail inbox
 export async function syncUserGmail(userId: string): Promise<number> {
   const user = await getUserById(userId);
@@ -134,9 +230,15 @@ export async function syncUserGmail(userId: string): Promise<number> {
 
   // Query active jobs from DB to prevent duplicate syncs
   const activeJobs = await getUserJobs(userId);
-  const existingMessageIds = new Set(
-    activeJobs.filter(j => j.source === 'gmail').map(j => j.gmailMessageId)
-  );
+  const existingMessageIds = new Set<string>();
+  for (const j of activeJobs) {
+    if (j.gmailMessageId) {
+      j.gmailMessageId.split(',').forEach(id => {
+        const trimmed = id.trim();
+        if (trimmed) existingMessageIds.add(trimmed);
+      });
+    }
+  }
 
   // 2. Fetch full body and subject for each message
   for (const msg of messages) {
@@ -181,19 +283,17 @@ export async function syncUserGmail(userId: string): Promise<number> {
       continue;
     }
 
-    // 4. Create Job in database
-    await createJob(userId, {
-      company: parsedInfo.company,
-      position: parsedInfo.position,
-      salary: parsedInfo.salary,
-      status: parsedInfo.status,
-      url: '',
-      notes: parsedInfo.notes,
-      dateApplied: new Date().toISOString().split('T')[0],
-      source: 'gmail',
-      gmailMessageId: msg.id,
-      emailSender: sender,
-    });
+    // 4. Create or Update Job in database
+    const updatedJob = await upsertGmailJob(userId, parsedInfo, msg.id, sender, activeJobs);
+
+    // Update local activeJobs array and existingMessageIds set
+    const jobIndex = activeJobs.findIndex(j => j.id === updatedJob.id);
+    if (jobIndex > -1) {
+      activeJobs[jobIndex] = updatedJob;
+    } else {
+      activeJobs.push(updatedJob);
+    }
+    existingMessageIds.add(msg.id);
 
     newJobsAddedCount++;
   }
