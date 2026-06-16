@@ -153,7 +153,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
       {/* Row 2: Charts Grid (Pipeline Distribution & Source Intelligence) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: 24
       }}>
         {/* Pipeline Distribution Bar Chart */}

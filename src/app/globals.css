@@ -668,6 +668,16 @@ label {
   .dashboard-content-area {
     padding: 16px !important;
   }
+
+  /* Hide username and membership details on mobile */
+  .top-bar-right > div > div:first-child {
+    display: none !important;
+  }
+
+  /* Make Global Sync button more compact */
+  .top-bar-left button {
+    font-size: 11px !important;
+  }
 }
 
 @media (max-width: 576px) {
@@ -685,12 +695,32 @@ label {
     padding: 20px !important;
     gap: 16px !important;
   }
+
+  /* Hide search input entirely on small screens */
+  .top-bar-search {
+    display: none !important;
+  }
+  
+  .top-bar-left {
+    gap: 12px !important;
+  }
+
+  .top-bar-right {
+    gap: 12px !important;
+  }
 }
 
 @media (max-width: 480px) {
   .form-grid-2col {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
+  }
+
+  /* Stack key-value flex rows inside profile card vertically */
+  .profile-card div[style*="justify-content: space-between"] {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
   }
 }
 
