@@ -63,7 +63,7 @@ export default function Header({
         {/* Brand */}
         <div className="nav-brand">
           <Logo size={28} />
-          <span className="brand-font" style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>Track AI</span>
+          <span className="brand-font" style={{ fontSize: 18, fontWeight: 800, background: 'linear-gradient(to right, #D4AF37, #E6C766)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackAI</span>
           <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '2px 6px', color: 'var(--text-secondary)' }}>SaaS Pro</span>
         </div>
 

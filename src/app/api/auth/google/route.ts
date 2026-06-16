@@ -13,19 +13,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(loginUrl.toString());
   }
 
-  // Determine if this is a Gmail Sync Connection flow (logged-in user) or Authentication flow (not logged-in user)
-  const token = req.cookies.get('token')?.value;
-  const isLoggedIn = token ? verifyToken(token) !== null : false;
-
+  // Request scopes including Gmail readonly for all flows to prevent 403 API errors on sync
   const scopes = [
     'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile'
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/gmail.readonly'
   ];
-
-  if (isLoggedIn) {
-    // Escalate permission scope to read Gmail messages for job application parsing
-    scopes.push('https://www.googleapis.com/auth/gmail.readonly');
-  }
 
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
     `client_id=${encodeURIComponent(clientId)}` +

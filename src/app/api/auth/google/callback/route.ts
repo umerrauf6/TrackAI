@@ -46,6 +46,10 @@ export async function GET(req: NextRequest) {
       throw new Error(tokens.error_description || 'Failed to exchange tokens');
     }
 
+    // Check if the required gmail.readonly scope was granted
+    const grantedScopes = tokens.scope ? tokens.scope.split(' ') : [];
+    const hasGmailScope = grantedScopes.some((s: string) => s.toLowerCase().includes('gmail.readonly'));
+
     // 2. Fetch User Profile from Google
     const profileResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokens.access_token}` },
@@ -63,9 +67,14 @@ export async function GET(req: NextRequest) {
         googleAccessToken: tokens.access_token,
         googleRefreshToken: tokens.refresh_token || undefined,
         googleEmail: profile.email || 'connected@gmail.com',
-        gmailSyncActive: true,
+        gmailSyncActive: hasGmailScope,
         lastSyncedTime: new Date().toISOString(),
       });
+
+      if (!hasGmailScope) {
+        dashboardUrl.searchParams.set('error', 'google_gmail_scope_missing');
+        return NextResponse.redirect(dashboardUrl.toString());
+      }
 
       dashboardUrl.searchParams.set('gmail_connected', 'true');
       return NextResponse.redirect(dashboardUrl.toString());
@@ -80,6 +89,15 @@ export async function GET(req: NextRequest) {
 
       // Find or register user in SQLite/Prisma
       const user = await findOrCreateUser(email, name);
+
+      // Save Google tokens & email to enable automatic Gmail sync
+      await updateUser(user.id, {
+        googleAccessToken: tokens.access_token,
+        googleRefreshToken: tokens.refresh_token || undefined,
+        googleEmail: email,
+        gmailSyncActive: hasGmailScope,
+        lastSyncedTime: new Date().toISOString(),
+      });
 
       // Sign session JWT
       const token = signToken({

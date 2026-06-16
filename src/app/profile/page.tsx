@@ -128,7 +128,7 @@ function ProfileContent() {
           <div>
             <h2 style={{ fontSize: 22, fontWeight: 800, color: 'white', margin: 0 }}>Account Settings</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Sparkles size={12} color="var(--accent)" /> Manage your Track AI profile
+              <Sparkles size={12} color="var(--accent)" /> Manage your TrackAI profile
             </p>
           </div>
         </div>
@@ -176,9 +176,24 @@ function ProfileContent() {
               {user.googleEmail ? (
                 <>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}><ShieldCheck size={14} color="#10b981" /> Connection Status</span>
-                    <span style={{ fontSize: 11, background: 'rgba(16,185,129,0.1)', color: '#10b981', border: '1px solid rgba(16,185,129,0.2)', padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>ACTIVE</span>
+                    <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}><ShieldCheck size={14} color={user.gmailSyncActive ? "#10b981" : "var(--gold-primary)"} /> Connection Status</span>
+                    <span style={{
+                      fontSize: 11,
+                      background: user.gmailSyncActive ? 'rgba(16,185,129,0.1)' : 'rgba(212,175,55,0.1)',
+                      color: user.gmailSyncActive ? '#10b981' : 'var(--gold-primary)',
+                      border: user.gmailSyncActive ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(212,175,55,0.2)',
+                      padding: '2px 8px',
+                      borderRadius: 20,
+                      fontWeight: 700
+                    }}>
+                      {user.gmailSyncActive ? 'ACTIVE' : 'INACTIVE (NEEDS AUTH)'}
+                    </span>
                   </div>
+                  {!user.gmailSyncActive && (
+                    <div style={{ padding: '10px 14px', background: 'rgba(212, 175, 55, 0.08)', border: '1px solid rgba(212, 175, 55, 0.18)', borderRadius: 8, color: 'var(--gold-primary)', fontSize: 12, lineHeight: 1.4 }}>
+                      Gmail sync is currently inactive because the required access permission is missing. Please <a href="/api/auth/google" style={{ color: 'var(--gold-primary)', textDecoration: 'underline', fontWeight: 600 }}>reconnect your Google Account</a> and verify that you check the checkbox for Gmail read access.
+                    </div>
+                  )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Linked Google Email</span>
                     <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{user.googleEmail}</span>

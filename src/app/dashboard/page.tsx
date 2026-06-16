@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { JobApplication, UserSession } from '../types/job';
 import KanbanBoard from '../components/KanbanBoard';
 import AnalyticsSection from '../components/AnalyticsSection';
+import Logo from '../components/Logo';
 import AddJobModal from '../components/AddJobModal';
 import JobDetailsDrawer from '../components/JobDetailsDrawer';
 import GmailSimulator from '../components/GmailSimulator';
@@ -118,12 +119,17 @@ function DashboardContent() {
     try {
       const res = await fetch('/api/gmail/sync', { method: 'POST' });
       const data = await res.json();
-      if (res.ok && data.jobsFound > 0) {
-        await fetchJobs();
-        setSyncResult(`Auto-Sync: Found and parsed ${data.jobsFound} new job applications.`);
+      if (res.ok) {
+        if (data.jobsFound > 0) {
+          await fetchJobs();
+          setSyncResult(`Auto-Sync: Found and parsed ${data.jobsFound} new job applications.`);
+        }
+      } else {
+        setBannerError(data.error || 'Background auto-sync failed.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Background auto-sync failed:', error);
+      setBannerError(error.message || 'Background auto-sync failed.');
     } finally {
       setSyncing(false);
     }
@@ -149,6 +155,8 @@ function DashboardContent() {
       setBannerError('Google API Credentials not configured in .env. Please configure them or use the Gmail Simulator.');
     } else if (errorQuery === 'google_auth_failed') {
       setBannerError('Gmail OAuth authentication was rejected or failed.');
+    } else if (errorQuery === 'google_gmail_scope_missing') {
+      setBannerError('Gmail Sync was not enabled because the Gmail access permission was not granted. Please reconnect Gmail and ensure the Gmail access checkbox is checked.');
     } else if (gmailConnectedQuery === 'true') {
       setBannerSuccess('Gmail Account successfully linked! You can now trigger synchronization.');
     }
@@ -314,9 +322,9 @@ function DashboardContent() {
         <div>
           {/* Brand Logo & Name */}
           <div className="sidebar-brand">
-            <h2 className="brand-font" style={{ fontSize: 20, fontWeight: 800, color: 'white', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <ShieldCheck size={20} color="var(--gold-primary)" />
-              Executive OS
+            <h2 className="brand-font" style={{ fontSize: 20, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, color: 'white' }}>
+              <Logo size={20} />
+              <span style={{ background: 'linear-gradient(to right, #D4AF37, #E6C766)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackAI</span>
             </h2>
             <span style={{ fontSize: 9, color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.08em', marginTop: 4, display: 'block' }}>
               PLATINUM MEMBER
@@ -390,7 +398,7 @@ function DashboardContent() {
               <Search size={15} />
               <input
                 type="text"
-                placeholder={activeTab === 'pipeline' ? "Search executive pipeline..." : "Global Sync Intelligence..."}
+                placeholder={activeTab === 'pipeline' ? "Search TrackAI pipeline..." : "Global Sync Intelligence..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -512,7 +520,18 @@ function DashboardContent() {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <AlertCircle size={18} style={{ flexShrink: 0 }} />
-                  <span>{bannerError}</span>
+                  <span>
+                    {bannerError.includes('reconnect') || bannerError.includes('permission') || bannerError.includes('denied') ? (
+                      <>
+                        {bannerError}{' '}
+                        <a href="/api/auth/google" style={{ color: 'var(--gold-primary)', fontWeight: 600, textDecoration: 'underline', marginLeft: 6 }}>
+                          Reconnect Gmail Now
+                        </a>
+                      </>
+                    ) : (
+                      bannerError
+                    )}
+                  </span>
                 </div>
                 <button onClick={() => setBannerError(null)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}>
                   <X size={16} />
@@ -742,7 +761,7 @@ function DashboardContent() {
             <div>[SCAN] Analyzing inbox telemetry for matching vectors</div>
             <div style={{ color: '#D4AF37' }}>&gt;&gt; IDENTIFIED: Sync Engine Active</div>
             <div style={{ color: '#10b981' }}>&gt;&gt; SUCCESS: Pipeline state synchronized. Monitoring active.</div>
-            <div>EXECUTIVE_OS_STABLE_</div>
+            <div>TRACKAI_ENGINE_STABLE_</div>
           </div>
         </div>
       )}

@@ -12,12 +12,12 @@ export default function Logo({ size = 32 }: LogoProps) {
       viewBox="0 0 32 32" 
       fill="none" 
       xmlns="http://www.w3.org/2000/svg"
-      style={{ filter: 'drop-shadow(0px 0px 8px rgba(139, 92, 246, 0.35))' }}
+      style={{ filter: 'drop-shadow(0px 0px 8px rgba(212, 175, 55, 0.35))' }}
     >
       <defs>
         <linearGradient id="logo-grad-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#8b5cf6" />
-          <stop offset="100%" stopColor="#3b82f6" />
+          <stop offset="0%" stopColor="#D4AF37" />
+          <stop offset="100%" stopColor="#E6C766" />
         </linearGradient>
       </defs>
       
@@ -53,7 +53,7 @@ export default function Logo({ size = 32 }: LogoProps) {
         cx="23.5" 
         cy="8.5" 
         r="2.5" 
-        fill="#10b981" 
+        fill="#E6C766" 
       />
       
       {/* Target Crosshair ticks */}

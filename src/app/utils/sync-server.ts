@@ -221,6 +221,10 @@ export async function syncUserGmail(userId: string): Promise<number> {
 
   if (!listResponse.ok) {
     const errorText = await listResponse.text();
+    if (listResponse.status === 403) {
+      await updateUser(userId, { gmailSyncActive: false });
+      throw new Error('Gmail API access denied (insufficient permissions). Please reconnect your Google Account and check all required permission boxes.');
+    }
     throw new Error(`Failed to access Gmail API: ${listResponse.status} - ${errorText}`);
   }
 
