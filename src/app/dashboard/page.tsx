@@ -740,8 +740,8 @@ function DashboardContent() {
             <div>[SYSTEM] Bootstrapping intelligence protocols...</div>
             <div style={{ color: '#A1A1AA' }}>[SECURE] Establishing encrypted handshake with Google OAuth</div>
             <div>[SCAN] Analyzing inbox telemetry for matching vectors</div>
-            <div style={{ color: '#D4AF37' }}>>> IDENTIFIED: Sync Engine Active</div>
-            <div style={{ color: '#10b981' }}>>> SUCCESS: Pipeline state synchronized. Monitoring active.</div>
+            <div style={{ color: '#D4AF37' }}>&gt;&gt; IDENTIFIED: Sync Engine Active</div>
+            <div style={{ color: '#10b981' }}>&gt;&gt; SUCCESS: Pipeline state synchronized. Monitoring active.</div>
             <div>EXECUTIVE_OS_STABLE_</div>
           </div>
         </div>
