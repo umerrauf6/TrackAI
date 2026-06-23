@@ -103,12 +103,91 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
 
   // 3. Detect Status (English + German)
   let status: ParsedJobInfo['status'] = 'Applied';
-  if (cleanSubject.includes('interview') || cleanSubject.includes('gespräch') || cleanSubject.includes('kennenlernen') || cleanBody.includes('schedule an interview') || cleanBody.includes('telefonat') || cleanBody.includes('vorstellungsgespräch')) {
-    status = 'Interviewing';
-  } else if (cleanSubject.includes('offer') || cleanSubject.includes('angebot') || cleanSubject.includes('zusage') || cleanBody.includes('pleased to offer') || cleanBody.includes('arbeitsvertrag')) {
-    status = 'Offer';
-  } else if (cleanBody.includes('not moving forward') || cleanBody.includes('leider') || cleanBody.includes('absage') || cleanBody.includes('nicht berücksichtigt') || cleanBody.includes('decided to pass')) {
+  
+  const hasRejectionKeywords = 
+    cleanSubject.includes('rejection') || 
+    cleanSubject.includes('absage') || 
+    cleanSubject.includes('unfortunately') || 
+    cleanSubject.includes('leider') || 
+    cleanSubject.includes('not select') ||
+    cleanSubject.includes('unsuccessful') ||
+    cleanBody.includes('not moving forward') || 
+    cleanBody.includes('not be moving forward') || 
+    cleanBody.includes('unable to move forward') || 
+    cleanBody.includes('decided to pass') || 
+    cleanBody.includes('decided not to proceed') || 
+    cleanBody.includes('not proceeding') || 
+    cleanBody.includes('unable to proceed') || 
+    cleanBody.includes('not select') || 
+    cleanBody.includes('not to select') || 
+    cleanBody.includes('not selected') || 
+    cleanBody.includes('unsuccessful') || 
+    cleanBody.includes('unfortunately') || 
+    cleanBody.includes('leider') || 
+    cleanBody.includes('absage') || 
+    cleanBody.includes('nicht berücksichtigt') || 
+    cleanBody.includes('kein angebot') || 
+    cleanBody.includes('anderweitig entschieden') || 
+    cleanBody.includes('other candidates') || 
+    cleanBody.includes('another candidate') || 
+    cleanBody.includes('filled the position') || 
+    cleanBody.includes('position has been filled') || 
+    cleanBody.includes('thank you for your interest, but') || 
+    cleanBody.includes('wish you the best') || 
+    cleanBody.includes('wish you success') || 
+    cleanBody.includes('success in your job search') || 
+    cleanBody.includes('best of luck') ||
+    cleanBody.includes('not the right fit') ||
+    cleanBody.includes('not a match') ||
+    cleanBody.includes('cannot offer you') ||
+    cleanBody.includes('unable to offer') ||
+    cleanBody.includes('cannot move forward') ||
+    cleanBody.includes('unable to move forward') ||
+    cleanBody.includes('do not see a match') ||
+    cleanBody.includes('not proceeding with your application') ||
+    cleanBody.includes('decided to proceed with other') ||
+    cleanBody.includes('unable to proceed with your application');
+
+  const hasOfferKeywords = 
+    cleanSubject.includes('offer') || 
+    cleanSubject.includes('angebot') || 
+    cleanSubject.includes('zusage') || 
+    cleanSubject.includes('contract') || 
+    cleanSubject.includes('vertrag') || 
+    cleanBody.includes('pleased to offer') || 
+    cleanBody.includes('offer letter') || 
+    cleanBody.includes('zusage') || 
+    cleanBody.includes('angebot') || 
+    cleanBody.includes('arbeitsvertrag') || 
+    cleanBody.includes('employment agreement') || 
+    cleanBody.includes('welcome to the team') || 
+    cleanBody.includes('congratulations');
+
+  const hasInterviewKeywords = 
+    cleanSubject.includes('interview') || 
+    cleanSubject.includes('gespräch') || 
+    cleanSubject.includes('kennenlernen') || 
+    cleanSubject.includes('screening') || 
+    cleanSubject.includes('phone screen') || 
+    cleanBody.includes('schedule') || 
+    cleanBody.includes('interview') || 
+    cleanBody.includes('gespräch') || 
+    cleanBody.includes('kennenlernen') || 
+    cleanBody.includes('telefonat') || 
+    cleanBody.includes('vorstellungsgespräch') || 
+    cleanBody.includes('phone call') || 
+    cleanBody.includes('video call') || 
+    cleanBody.includes('hackerank') || 
+    cleanBody.includes('codility') || 
+    cleanBody.includes('technical assessment') || 
+    cleanBody.includes('take-home');
+
+  if (hasRejectionKeywords) {
     status = 'Rejected';
+  } else if (hasOfferKeywords) {
+    status = 'Offer';
+  } else if (hasInterviewKeywords) {
+    status = 'Interviewing';
   }
 
   // 4. Notes & Salary
@@ -171,7 +250,7 @@ Extract the following information:
   * "Applied" (for standard submission confirmations, application receipts, thank-you-for-applying / "Vielen Dank für Ihre Bewerbung" emails)
   * "Interviewing" (if the email talks about next steps, scheduling calls, phone screens, technical tests, or virtual chats / "Vorstellungsgespräch" / "Kennenlernen")
   * "Offer" (if an official offer letter, package details, or draft employment contract / "Arbeitsvertrag" / "Zusage" is sent)
-  * "Rejected" (if they pass, decline, or are not moving forward with your candidacy / "Absage" / "Leider nicht berücksichtigt")
+  * "Rejected" (if they decline, pass, send a rejection, state they are not moving forward with your candidacy, or write that they cannot offer you the role / "Absage" / "Leider nicht berücksichtigt" / "Unfortunately")
 - notes: A concise 1-2 sentence professional summary of what this email says and if there are immediate steps required. If the email is in German, write the summary notes in English.
 
 Email Subject: ${subject}

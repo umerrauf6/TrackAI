@@ -1,7 +1,7 @@
 'use client';
 
 import { JobApplication } from '../types/job';
-import { Trophy, Clock, TrendingUp, BarChart3, Filter, Calendar } from 'lucide-react';
+import { Trophy, Clock, TrendingUp, BarChart3, Filter, Calendar, Briefcase } from 'lucide-react';
 
 interface AnalyticsSectionProps {
   jobs: JobApplication[];
@@ -55,6 +55,36 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
         gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: 24
       }}>
+        {/* Metric 0: Total Applications */}
+        <div className="glass-panel" style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{
+              width: 38,
+              height: 38,
+              borderRadius: 10,
+              background: 'rgba(255, 255, 255, 0.03)',
+              border: '1px solid rgba(255, 255, 255, 0.08)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--text-secondary)'
+            }}>
+              <Briefcase size={18} />
+            </div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', background: 'rgba(255,255,255,0.05)', padding: '2px 8px', borderRadius: 20 }}>
+              Active
+            </span>
+          </div>
+          <div>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Applications</span>
+            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'white', marginTop: 4 }}>{total}</h3>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: 12 }}>
+            <span>Pipeline Ingested</span>
+            <span style={{ color: '#10b981', fontWeight: 600 }}>All Channels</span>
+          </div>
+        </div>
+
         {/* Metric 1: Total Offers */}
         <div className="glass-panel" style={{ padding: 24, borderRadius: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

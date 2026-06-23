@@ -89,7 +89,7 @@ function extractBodyText(payload: any): string {
 export function normalizeCompanyName(name: string): string {
   const normalized = name
     .toLowerCase()
-    .replace(/\b(gmbh|llc|inc|co|corp|corporation|ltd|ag|s\.a\.)\b/gi, '')
+    .replace(/\b(gmbh|llc|inc|co|corp|corporation|ltd|ag|s\.a\.|team|careers|recruiting|recruitment|jobs|hiring|hr|solutions|technologies|tech|systems)\b/gi, '')
     .replace(/[^a-z0-9]/g, '')
     .trim();
   return normalized || name.toLowerCase().trim();
@@ -108,7 +108,7 @@ export async function upsertGmailJob(
   messageId: string,
   sender: string,
   activeJobs: JobApplication[]
-): Promise<JobApplication> {
+ ): Promise<JobApplication> {
   // Check if job for same company already exists
   const existingJob = activeJobs.find(j => {
     const dbCompany = j.company.toLowerCase().trim();
@@ -116,7 +116,18 @@ export async function upsertGmailJob(
     if (dbCompany === parsedCompany) return true;
     
     // Secondary check: normalize names to strip suffixes
-    return normalizeCompanyName(dbCompany) === normalizeCompanyName(parsedCompany);
+    const normDb = normalizeCompanyName(dbCompany);
+    const normParsed = normalizeCompanyName(parsedCompany);
+    if (normDb === normParsed) return true;
+
+    // Tertiary check: fuzzy match using substring containment (min 3 chars to prevent false matches)
+    if (normDb.length >= 3 && normParsed.length >= 3) {
+      if (normDb.includes(normParsed) || normParsed.includes(normDb)) {
+        return true;
+      }
+    }
+    
+    return false;
   });
 
   if (existingJob) {

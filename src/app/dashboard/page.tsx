@@ -376,9 +376,23 @@ function DashboardContent() {
             <div 
               className={`sidebar-item ${activeTab === 'pipeline' ? 'active' : ''}`}
               onClick={() => { setActiveTab('pipeline'); setMobileSidebarOpen(false); }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
             >
-              <LayoutGrid size={16} />
-              Pipeline
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <LayoutGrid size={16} />
+                Pipeline
+              </div>
+              <span style={{ 
+                fontSize: 10, 
+                fontWeight: 700,
+                background: activeTab === 'pipeline' ? 'var(--gold-soft)' : 'rgba(255,255,255,0.05)', 
+                border: activeTab === 'pipeline' ? '1px solid var(--gold-border)' : '1px solid rgba(255,255,255,0.08)',
+                color: activeTab === 'pipeline' ? 'var(--gold-primary)' : 'var(--text-secondary)',
+                padding: '2px 8px', 
+                borderRadius: 20 
+              }}>
+                {jobs.length}
+              </span>
             </div>
           </div>
         </div>
