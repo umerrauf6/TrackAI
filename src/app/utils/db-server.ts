@@ -208,7 +208,7 @@ export async function getUserJobs(userId: string): Promise<JobApplication[]> {
   }));
 }
 
-export async function createJob(userId: string, job: Omit<JobApplication, 'id' | 'userId' | 'checklist' | 'history'>): Promise<JobApplication> {
+export async function createJob(userId: string, job: Omit<JobApplication, 'id' | 'userId' | 'checklist' | 'history'> & { emailSubject?: string; emailBody?: string }): Promise<JobApplication> {
   // Create default checklist items based on status
   const defaultChecklist = [];
   if (job.status === 'Bookmarked' || job.status === 'Applied') {
@@ -225,10 +225,19 @@ export async function createJob(userId: string, job: Omit<JobApplication, 'id' |
     );
   }
 
+  let description = `Job application created via ${job.source === 'gmail' ? 'Gmail Auto-detect' : 'Manual Entry'}.`;
+  if (job.source === 'gmail' && job.emailSubject && job.emailBody) {
+    description += `[EMAIL_REF]${JSON.stringify({
+      sender: job.emailSender || 'Unknown Sender',
+      subject: job.emailSubject,
+      body: job.emailBody
+    })}`;
+  }
+
   const defaultHistory = [
     {
       status: job.status,
-      description: `Job application created via ${job.source === 'gmail' ? 'Gmail Auto-detect' : 'Manual Entry'}.`
+      description
     }
   ];
 
@@ -269,7 +278,7 @@ export async function createJob(userId: string, job: Omit<JobApplication, 'id' |
   };
 }
 
-export async function updateJob(userId: string, jobId: string, updates: Partial<Omit<JobApplication, 'id' | 'userId'>>): Promise<JobApplication> {
+export async function updateJob(userId: string, jobId: string, updates: Partial<Omit<JobApplication, 'id' | 'userId'>> & { emailSubject?: string; emailBody?: string }): Promise<JobApplication> {
   // Fetch current status
   const currentJob = await prisma.job.findFirst({
     where: { id: jobId, userId },
@@ -297,9 +306,18 @@ export async function updateJob(userId: string, jobId: string, updates: Partial<
   let appendTasks: { text: string; completed: boolean }[] = [];
 
   if (updates.status && updates.status !== currentJob.status) {
+    let description = `Status changed from ${currentJob.status} to ${updates.status}.`;
+    if (updates.emailSubject && updates.emailBody) {
+      description += `[EMAIL_REF]${JSON.stringify({
+        sender: updates.emailSender || currentJob.emailSender || 'Unknown Sender',
+        subject: updates.emailSubject,
+        body: updates.emailBody
+      })}`;
+    }
+    
     historyData.push({
       status: updates.status,
-      description: `Status changed from ${currentJob.status} to ${updates.status}.`
+      description
     });
 
     if (updates.status === 'Interviewing') {

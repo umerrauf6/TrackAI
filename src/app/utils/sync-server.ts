@@ -107,7 +107,9 @@ export async function upsertGmailJob(
   },
   messageId: string,
   sender: string,
-  activeJobs: JobApplication[]
+  activeJobs: JobApplication[],
+  emailSubject?: string,
+  emailBody?: string
  ): Promise<JobApplication> {
   // Check if job for same company already exists
   const existingJob = activeJobs.find(j => {
@@ -170,6 +172,9 @@ export async function upsertGmailJob(
       notes: updatedNotes,
       gmailMessageId: updatedGmailMessageId,
       source: 'gmail',
+      emailSubject,
+      emailBody,
+      emailSender: sender,
     };
 
     if (shouldUpdateStatus) {
@@ -189,6 +194,8 @@ export async function upsertGmailJob(
       source: 'gmail',
       gmailMessageId: messageId,
       emailSender: sender,
+      emailSubject,
+      emailBody,
     });
   }
 }
@@ -299,7 +306,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
     }
 
     // 4. Create or Update Job in database
-    const updatedJob = await upsertGmailJob(userId, parsedInfo, msg.id, sender, activeJobs);
+    const updatedJob = await upsertGmailJob(userId, parsedInfo, msg.id, sender, activeJobs, subject, bodyText);
 
     // Update local activeJobs array and existingMessageIds set
     const jobIndex = activeJobs.findIndex(j => j.id === updatedJob.id);

@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     const parsedInfo = await parseEmailWithAI(subject, bodyText);
 
     // Save or update job in DB
-    const job = await upsertGmailJob(userId, parsedInfo, mockMessageId, sender, activeJobs);
+    const job = await upsertGmailJob(userId, parsedInfo, mockMessageId, sender, activeJobs, subject, bodyText);
 
     // Update synced time
     await updateUser(userId, {

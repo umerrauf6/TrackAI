@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { JobApplication, ChecklistItem } from '../types/job';
-import { X, Trash2, Calendar, Link as LinkIcon, CheckSquare, Plus, Mail, Clock, DollarSign, FileText } from 'lucide-react';
+import { X, Trash2, Calendar, Link as LinkIcon, CheckSquare, Plus, Mail, Clock, DollarSign, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 interface JobDetailsDrawerProps {
@@ -10,6 +10,19 @@ interface JobDetailsDrawerProps {
   onClose: () => void;
   onUpdateJob: (jobId: string, updates: Partial<JobApplication>) => Promise<void>;
   onDeleteJob: (jobId: string) => Promise<void>;
+}
+
+function parseHistoryDescription(desc: string) {
+  if (desc && desc.includes('[EMAIL_REF]')) {
+    const parts = desc.split('[EMAIL_REF]');
+    try {
+      const email = JSON.parse(parts[1]);
+      return { text: parts[0], email };
+    } catch (e) {
+      return { text: desc, email: null };
+    }
+  }
+  return { text: desc, email: null };
 }
 
 export default function JobDetailsDrawer({
@@ -30,6 +43,9 @@ export default function JobDetailsDrawer({
   // Save indicators
   const [savingNotes, setSavingNotes] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Expanded email state for timeline
+  const [expandedEmailEventId, setExpandedEmailEventId] = useState<string | null>(null);
 
   // Sync state if job changes
   useEffect(() => {
@@ -340,28 +356,98 @@ export default function JobDetailsDrawer({
                   <Clock size={14} /> Activity History Log
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16, borderLeft: '1px solid var(--border-color)', marginLeft: 8, paddingLeft: 16 }}>
-                  {job.history.map((event) => (
-                    <div key={event.id} style={{ position: 'relative' }}>
-                      {/* Timeline bullet */}
-                      <div style={{
-                        position: 'absolute',
-                        left: -21,
-                        top: 4,
-                        width: 9,
-                        height: 9,
-                        borderRadius: '50%',
-                        background: `hsl(var(--status-${event.status}))`,
-                        border: '2px solid var(--bg-primary)'
-                      }}></div>
-                      
-                      <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
-                        {new Date(event.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                      <p style={{ fontSize: 12, color: 'var(--text-primary)', marginTop: 2 }}>
-                        <strong>{event.status}</strong>: {event.description}
-                      </p>
-                    </div>
-                  ))}
+                  {job.history.map((event) => {
+                    const { text, email } = parseHistoryDescription(event.description);
+                    const isExpanded = expandedEmailEventId === event.id;
+
+                    return (
+                      <div key={event.id} style={{ position: 'relative', marginBottom: 12 }}>
+                        {/* Timeline bullet */}
+                        <div style={{
+                          position: 'absolute',
+                          left: -21,
+                          top: 4,
+                          width: 9,
+                          height: 9,
+                          borderRadius: '50%',
+                          background: `hsl(var(--status-${event.status}))`,
+                          border: '2px solid var(--bg-primary)'
+                        }}></div>
+                        
+                        <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                          {new Date(event.date).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 2 }}>
+                          <p style={{ fontSize: 12, color: 'var(--text-primary)', margin: 0 }}>
+                            <strong>{event.status}</strong>: {text}
+                          </p>
+                          {email && (
+                            <button
+                              onClick={() => setExpandedEmailEventId(isExpanded ? null : event.id)}
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 6,
+                                background: 'rgba(212, 175, 55, 0.08)',
+                                border: '1px solid rgba(212, 175, 55, 0.15)',
+                                color: 'var(--gold-primary)',
+                                padding: '4px 10px',
+                                borderRadius: 6,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                marginTop: 6,
+                                width: 'fit-content',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              <Mail size={12} />
+                              {isExpanded ? 'Hide Email Reference' : 'View Email Reference'}
+                              {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                            </button>
+                          )}
+                          
+                          {/* Expanded Email Client View */}
+                          {email && isExpanded && (
+                            <div style={{
+                              marginTop: 8,
+                              background: 'rgba(24, 24, 27, 0.9)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: 10,
+                              padding: 12,
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 10,
+                              boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+                              animation: 'fadeIn 0.2s ease-out'
+                            }}>
+                              <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>From:</span> {email.sender}
+                                </div>
+                                <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>Subject:</span> {email.subject}
+                                </div>
+                              </div>
+                              <div style={{
+                                fontSize: 11.5,
+                                color: 'var(--text-secondary)',
+                                whiteSpace: 'pre-wrap',
+                                wordBreak: 'break-word',
+                                maxHeight: 180,
+                                overflowY: 'auto',
+                                paddingRight: 6,
+                                lineHeight: 1.5,
+                                fontFamily: 'monospace'
+                              }}>
+                                {email.body}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
