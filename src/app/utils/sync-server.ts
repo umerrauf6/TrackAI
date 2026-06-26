@@ -195,7 +195,11 @@ export async function upsertGmailJob(
     const formattedDate = `${mm}/${dd}/${yyyy}`;
 
     let updatedNotes = existingJob.notes || '';
-    if (parsedInfo.notes) {
+    // Only append notes if this specific email hasn't been seen before on this job
+    const alreadySeen = existingJob.gmailMessageId
+      ? existingJob.gmailMessageId.split(',').map(id => id.trim()).includes(messageId)
+      : false;
+    if (parsedInfo.notes && !alreadySeen) {
       const updateHeader = `\n\n[Update ${formattedDate}] `;
       updatedNotes = updatedNotes ? `${updatedNotes}${updateHeader}${parsedInfo.notes}` : `[Update ${formattedDate}] ${parsedInfo.notes}`;
     }
@@ -254,7 +258,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
 
   // 1. Fetch recent message headers from Gmail API
   let listResponse = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=50`,
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=10`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     }
@@ -268,7 +272,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
       
       // Retry fetch with the fresh access token
       listResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=50`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=10`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
@@ -292,10 +296,17 @@ export async function syncUserGmail(userId: string): Promise<number> {
   const messages = listData.messages || [];
   let newJobsAddedCount = 0;
 
-  // Query active jobs from DB to prevent duplicate syncs
+  // Query active jobs from DB to prevent duplicate syncs.
+  // IMPORTANT: We deliberately exclude message IDs from Rejected jobs.
+  // Why: a previous sync may have merged a *new* application email's ID into
+  // an old rejected job entry (same company, matched position). That would
+  // permanently skip the email on all future syncs. By excluding Rejected job
+  // IDs here, those emails are re-evaluated — if the position is different, a
+  // brand-new job entry is correctly created.
   const activeJobs = await getUserJobs(userId);
   const existingMessageIds = new Set<string>();
   for (const j of activeJobs) {
+    if (j.status === 'Rejected') continue; // let rejected-job emails be re-evaluated
     if (j.gmailMessageId) {
       j.gmailMessageId.split(',').forEach(id => {
         const trimmed = id.trim();
