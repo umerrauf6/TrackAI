@@ -1,77 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getUserByEmail, hashPassword } from '@/app/utils/db-server';
-import { signToken } from '@/app/utils/jwt-server';
+import { NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest) {
-  try {
-    const { email, password } = await req.json();
-
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      );
-    }
-
-    const user = await getUserByEmail(email);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
-
-    // If the account was created via OAuth (Google / GitHub), the user has no
-    // password — route them through OTP instead of failing silently.
-    if (user.authProvider && user.authProvider !== 'email') {
-      return NextResponse.json(
-        {
-          requiresOtp: true,
-          reason: 'oauth_account',
-          provider: user.authProvider,
-          message: `Your account uses ${user.authProvider} sign-in. We'll send you a one-time code to your email instead.`,
-        },
-        { status: 200 }
-      );
-    }
-
-    const inputHash = hashPassword(password);
-    if (user.passwordHash !== inputHash) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
-
-    const token = signToken({
-      userId: user.id,
-      email: user.email,
-      name: user.name,
-    });
-
-    const response = NextResponse.json({
-      success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-      },
-    });
-
-    response.cookies.set('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    });
-
-    return response;
-  } catch (error: any) {
-    console.error('Login API Error:', error);
-    return NextResponse.json(
-      { error: 'An error occurred during log in' },
-      { status: 500 }
-    );
-  }
+// Email+password login is deprecated in favour of OTP-only auth.
+// All email sign-ins now go through /api/auth/otp/send + /api/auth/otp/verify.
+export async function POST() {
+  return NextResponse.json(
+    { error: 'Password login is disabled. Please use the email OTP sign-in flow.' },
+    { status: 410 }
+  );
 }
