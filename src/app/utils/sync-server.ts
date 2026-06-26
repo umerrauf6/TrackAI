@@ -254,7 +254,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
 
   // 1. Fetch recent message headers from Gmail API
   let listResponse = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=10`,
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=50`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     }
@@ -268,7 +268,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
       
       // Retry fetch with the fresh access token
       listResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=10`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=50`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
@@ -306,7 +306,10 @@ export async function syncUserGmail(userId: string): Promise<number> {
 
   // 2. Fetch full body and subject for each message
   for (const msg of messages) {
-    if (existingMessageIds.has(msg.id)) continue;
+    if (existingMessageIds.has(msg.id)) {
+      console.log(`Skipping message ${msg.id}: already tracked in DB.`);
+      continue;
+    }
 
     let msgResponse = await fetch(
       `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}`,
@@ -340,6 +343,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
 
     // 3. AI Parse Email Content
     const parsedInfo = await parseEmailWithAI(subject, bodyText);
+    console.log(`Message ${msg.id} ("${subject}") parsed:`, JSON.stringify({ isJobRelated: parsedInfo.isJobRelated, company: parsedInfo.company, position: parsedInfo.position, status: parsedInfo.status }));
 
     // Skip if the email is classified as not job related
     if (parsedInfo.isJobRelated === false) {

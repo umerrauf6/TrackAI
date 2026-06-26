@@ -305,8 +305,11 @@ You MUST return only a valid JSON object matching this schema:
       parsedJson.status = 'Applied';
     }
     
-    // Safety check on isJobRelated
-    if (parsedJson.company === 'Unknown Company' || !parsedJson.company) {
+    // Safety check on isJobRelated — only suppress when company couldn't be
+    // detected AND there's no meaningful status signal (raw default "Applied").
+    // Don't kill emails just because company extraction failed; the job might
+    // still be legitimately trackable.
+    if ((parsedJson.company === 'Unknown Company' || !parsedJson.company) && parsedJson.status === 'Applied') {
       parsedJson.isJobRelated = false;
     }
     
