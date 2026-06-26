@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     const name = profile.name || profile.login || 'GitHub User';
 
     // 4. Find or Create User in DB
-    const user = await findOrCreateUser(email, name);
+    const user = await findOrCreateUser(email, name, 'github');
 
     // 5. Generate secure session JWT and redirect to dashboard
     const token = signToken({

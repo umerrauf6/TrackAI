@@ -21,6 +21,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // If the account was created via OAuth (Google / GitHub), the user has no
+    // password — route them through OTP instead of failing silently.
+    if (user.authProvider && user.authProvider !== 'email') {
+      return NextResponse.json(
+        {
+          requiresOtp: true,
+          reason: 'oauth_account',
+          provider: user.authProvider,
+          message: `Your account uses ${user.authProvider} sign-in. We'll send you a one-time code to your email instead.`,
+        },
+        { status: 200 }
+      );
+    }
+
     const inputHash = hashPassword(password);
     if (user.passwordHash !== inputHash) {
       return NextResponse.json(

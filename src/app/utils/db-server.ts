@@ -53,6 +53,7 @@ export interface User {
   passwordHash: string;
   name: string;
   createdAt: string;
+  authProvider: string;
   googleAccessToken?: string;
   googleRefreshToken?: string;
   googleEmail?: string;
@@ -75,6 +76,7 @@ export async function getUserByEmail(email: string): Promise<User | undefined> {
   
   return {
     ...user,
+    authProvider: user.authProvider || 'email',
     createdAt: user.createdAt.toISOString(),
     googleAccessToken: user.googleAccessToken || undefined,
     googleRefreshToken: user.googleRefreshToken || undefined,
@@ -91,6 +93,7 @@ export async function getUserById(id: string): Promise<User | undefined> {
 
   return {
     ...user,
+    authProvider: user.authProvider || 'email',
     createdAt: user.createdAt.toISOString(),
     googleAccessToken: user.googleAccessToken || undefined,
     googleRefreshToken: user.googleRefreshToken || undefined,
@@ -99,7 +102,7 @@ export async function getUserById(id: string): Promise<User | undefined> {
   };
 }
 
-export async function createUser(email: string, passwordPlain: string, name: string): Promise<User> {
+export async function createUser(email: string, passwordPlain: string, name: string, authProvider: string = 'email'): Promise<User> {
   const existing = await prisma.user.findUnique({
     where: { email: email.toLowerCase() }
   });
@@ -113,12 +116,14 @@ export async function createUser(email: string, passwordPlain: string, name: str
       email: email.toLowerCase(),
       passwordHash: hashPassword(passwordPlain),
       name,
+      authProvider,
       gmailSyncActive: false
     }
   });
 
   return {
     ...user,
+    authProvider: user.authProvider || 'email',
     createdAt: user.createdAt.toISOString(),
     googleAccessToken: user.googleAccessToken || undefined,
     googleRefreshToken: user.googleRefreshToken || undefined,
@@ -127,7 +132,7 @@ export async function createUser(email: string, passwordPlain: string, name: str
   };
 }
 
-export async function findOrCreateUser(email: string, name: string): Promise<User> {
+export async function findOrCreateUser(email: string, name: string, authProvider: string = 'google'): Promise<User> {
   const existing = await prisma.user.findUnique({
     where: { email: email.toLowerCase() }
   });
@@ -135,6 +140,7 @@ export async function findOrCreateUser(email: string, name: string): Promise<Use
   if (existing) {
     return {
       ...existing,
+      authProvider: existing.authProvider || authProvider,
       createdAt: existing.createdAt.toISOString(),
       googleAccessToken: existing.googleAccessToken || undefined,
       googleRefreshToken: existing.googleRefreshToken || undefined,
@@ -148,12 +154,14 @@ export async function findOrCreateUser(email: string, name: string): Promise<Use
       email: email.toLowerCase(),
       name,
       passwordHash: 'oauth-external-account',
+      authProvider,
       gmailSyncActive: false
     }
   });
 
   return {
     ...user,
+    authProvider: user.authProvider || authProvider,
     createdAt: user.createdAt.toISOString(),
     googleAccessToken: user.googleAccessToken || undefined,
     googleRefreshToken: user.googleRefreshToken || undefined,
@@ -176,12 +184,36 @@ export async function updateUser(id: string, updates: Partial<Omit<User, 'id' | 
 
   return {
     ...user,
+    authProvider: user.authProvider || 'email',
     createdAt: user.createdAt.toISOString(),
     googleAccessToken: user.googleAccessToken || undefined,
     googleRefreshToken: user.googleRefreshToken || undefined,
     googleEmail: user.googleEmail || undefined,
     lastSyncedTime: user.lastSyncedTime?.toISOString() || undefined
   };
+}
+
+// --- OTP OPERATIONS ---
+export async function upsertOtp(email: string, code: string, expiresAt: Date): Promise<void> {
+  await prisma.otpCode.upsert({
+    where: { email: email.toLowerCase() },
+    create: { email: email.toLowerCase(), code, expiresAt },
+    update: { code, expiresAt, createdAt: new Date() },
+  });
+}
+
+export async function getOtp(email: string): Promise<{ code: string; expiresAt: Date } | null> {
+  const otp = await prisma.otpCode.findUnique({
+    where: { email: email.toLowerCase() }
+  });
+  if (!otp) return null;
+  return { code: otp.code, expiresAt: otp.expiresAt };
+}
+
+export async function deleteOtp(email: string): Promise<void> {
+  await prisma.otpCode.deleteMany({
+    where: { email: email.toLowerCase() }
+  });
 }
 
 // --- JOB OPERATIONS ---

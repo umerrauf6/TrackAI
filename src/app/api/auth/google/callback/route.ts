@@ -88,7 +88,7 @@ export async function GET(req: NextRequest) {
       }
 
       // Find or register user in SQLite/Prisma
-      const user = await findOrCreateUser(email, name);
+      const user = await findOrCreateUser(email, name, 'google');
 
       // Save Google tokens & email to enable automatic Gmail sync
       await updateUser(user.id, {

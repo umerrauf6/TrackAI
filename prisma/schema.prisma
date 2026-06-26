@@ -13,12 +13,21 @@ model User {
   passwordHash       String
   name               String
   createdAt          DateTime  @default(now())
+  authProvider       String    @default("email")
   googleAccessToken  String?
   googleRefreshToken String?
   googleEmail        String?
   gmailSyncActive    Boolean   @default(false)
   lastSyncedTime     DateTime?
   jobs               Job[]
+}
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
 }
 
 model Job {
