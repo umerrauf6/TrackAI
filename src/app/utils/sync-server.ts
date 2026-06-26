@@ -86,6 +86,42 @@ function extractBodyText(payload: any): string {
   return '';
 }
 
+export function cleanPosition(pos: string): string {
+  return pos
+    .toLowerCase()
+    .replace(/\b(senior|sr|junior|jr|lead|staff|principal|intern|co-op|coop|apprentice|contractor|temp)\b/gi, '')
+    .replace(/[^a-z0-9]/g, '')
+    .trim();
+}
+
+export function isSimilarPosition(pos1: string, pos2: string): boolean {
+  const p1 = cleanPosition(pos1);
+  const p2 = cleanPosition(pos2);
+  
+  if (!p1 || !p2) return false;
+  if (p1 === p2) return true;
+  
+  // Guard against matching different roles with shared terms (e.g. frontend vs backend)
+  const hasFrontend1 = p1.includes('frontend') || p1.includes('ui') || p1.includes('client');
+  const hasFrontend2 = p2.includes('frontend') || p2.includes('ui') || p2.includes('client');
+  const hasBackend1 = p1.includes('backend') || p1.includes('server') || p1.includes('api');
+  const hasBackend2 = p2.includes('backend') || p2.includes('server') || p2.includes('api');
+  
+  if ((hasFrontend1 !== hasFrontend2) || (hasBackend1 !== hasBackend2)) {
+    return false;
+  }
+  
+  // Only treat as similar if the substring match is substantial (≥80% of the longer string).
+  // This prevents "softwareengineer" from matching "softwareengineerbackendteamlead".
+  if (p1.includes(p2) || p2.includes(p1)) {
+    const shorter = Math.min(p1.length, p2.length);
+    const longer = Math.max(p1.length, p2.length);
+    return shorter / longer >= 0.8;
+  }
+  
+  return false;
+}
+
 export function normalizeCompanyName(name: string): string {
   const normalized = name
     .toLowerCase()
@@ -111,25 +147,31 @@ export async function upsertGmailJob(
   emailSubject?: string,
   emailBody?: string
  ): Promise<JobApplication> {
-  // Check if job for same company already exists
+  // Check if job for same company AND similar position already exists.
+  // Rejected jobs ARE included in this check — if the same company + same position
+  // appears again, it is truly a duplicate and should not be re-added.
+  // If the position name is different, isSimilarPosition will return false and
+  // a brand-new entry will be created (even for the same company).
   const existingJob = activeJobs.find(j => {
     const dbCompany = j.company.toLowerCase().trim();
     const parsedCompany = parsedInfo.company.toLowerCase().trim();
-    if (dbCompany === parsedCompany) return true;
     
-    // Secondary check: normalize names to strip suffixes
-    const normDb = normalizeCompanyName(dbCompany);
-    const normParsed = normalizeCompanyName(parsedCompany);
-    if (normDb === normParsed) return true;
-
-    // Tertiary check: fuzzy match using substring containment (min 3 chars to prevent false matches)
-    if (normDb.length >= 3 && normParsed.length >= 3) {
-      if (normDb.includes(normParsed) || normParsed.includes(normDb)) {
-        return true;
+    let companyMatches = dbCompany === parsedCompany;
+    
+    if (!companyMatches) {
+      const normDb = normalizeCompanyName(dbCompany);
+      const normParsed = normalizeCompanyName(parsedCompany);
+      if (normDb === normParsed) {
+        companyMatches = true;
+      } else if (normDb.length >= 3 && normParsed.length >= 3 && (normDb.includes(normParsed) || normParsed.includes(normDb))) {
+        companyMatches = true;
       }
     }
     
-    return false;
+    if (!companyMatches) return false;
+    
+    // If the company matches, verify the position is also similar
+    return isSimilarPosition(j.position, parsedInfo.position);
   });
 
   if (existingJob) {
