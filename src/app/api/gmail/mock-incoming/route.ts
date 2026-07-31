@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Run AI parser (powered by Groq)
-    const parsedInfo = await parseEmailWithAI(subject, bodyText);
+    const parsedInfo = await parseEmailWithAI(subject, bodyText, sender);
 
     // Save or update job in DB
     const job = await upsertGmailJob(userId, parsedInfo, mockMessageId, sender, activeJobs, subject, bodyText);

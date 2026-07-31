@@ -45,12 +45,17 @@ function findPartByMimeType(parts: any[], mimeType: string): any {
 function stripHtml(html: string): string {
   let text = html.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
   text = text.replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '');
+  // Insert space for block elements to prevent word concatenation
+  text = text.replace(/<\/(p|div|tr|li|h[1-6]|section|header|footer|article)>/gi, ' ');
+  text = text.replace(/<br\s*\/?>/gi, ' ');
   text = text.replace(/<[^>]+>/g, ' ');
   text = text.replace(/\s+/g, ' ');
-  text = text.replace(/&nbsp;/g, ' ');
-  text = text.replace(/&amp;/g, '&');
-  text = text.replace(/&lt;/g, '<');
-  text = text.replace(/&gt;/g, '>');
+  text = text.replace(/&nbsp;/gi, ' ');
+  text = text.replace(/&amp;/gi, '&');
+  text = text.replace(/&lt;/gi, '<');
+  text = text.replace(/&gt;/gi, '>');
+  text = text.replace(/&#39;/gi, "'");
+  text = text.replace(/&quot;/gi, '"');
   return text.trim();
 }
 
@@ -58,7 +63,7 @@ function extractBodyText(payload: any): string {
   if (!payload) return '';
   
   if (payload.body && payload.body.data) {
-    const raw = Buffer.from(payload.body.data, 'base64').toString('utf8');
+    const raw = Buffer.from(payload.body.data, 'base64url').toString('utf8');
     if (payload.mimeType === 'text/html') {
       return stripHtml(raw);
     }
@@ -68,12 +73,12 @@ function extractBodyText(payload: any): string {
   if (payload.parts && Array.isArray(payload.parts)) {
     const plainPart = findPartByMimeType(payload.parts, 'text/plain');
     if (plainPart && plainPart.body && plainPart.body.data) {
-      return Buffer.from(plainPart.body.data, 'base64').toString('utf8');
+      return Buffer.from(plainPart.body.data, 'base64url').toString('utf8');
     }
     
     const htmlPart = findPartByMimeType(payload.parts, 'text/html');
     if (htmlPart && htmlPart.body && htmlPart.body.data) {
-      const rawHtml = Buffer.from(htmlPart.body.data, 'base64').toString('utf8');
+      const rawHtml = Buffer.from(htmlPart.body.data, 'base64url').toString('utf8');
       return stripHtml(rawHtml);
     }
     
@@ -353,7 +358,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
     }
 
     // 3. AI Parse Email Content
-    const parsedInfo = await parseEmailWithAI(subject, bodyText);
+    const parsedInfo = await parseEmailWithAI(subject, bodyText, sender);
     console.log(`Message ${msg.id} ("${subject}") parsed:`, JSON.stringify({ isJobRelated: parsedInfo.isJobRelated, company: parsedInfo.company, position: parsedInfo.position, status: parsedInfo.status }));
 
     // Skip if the email is classified as not job related

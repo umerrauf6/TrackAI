@@ -24,7 +24,7 @@ function isEmailBlacklisted(subject: string, body: string): boolean {
 }
 
 // Smart Regex Heuristics fallback parser
-function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
+function parseEmailHeuristics(subject: string, body: string, sender: string = ''): ParsedJobInfo {
   if (isEmailBlacklisted(subject, body)) {
     return {
       company: 'Unknown Company',
@@ -38,6 +38,7 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
 
   const cleanSubject = subject.toLowerCase();
   const cleanBody = body.toLowerCase();
+  const cleanSender = sender.toLowerCase();
   
   // Job keywords to check relevance (English + German)
   const jobKeywords = [
@@ -74,6 +75,22 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
       if (candidate.length > 1 && candidate.length < 50 && !candidate.includes('thank you') && !candidate.includes('confirm') && !candidate.includes('vielen dank')) {
         company = candidate;
         break;
+      }
+    }
+  }
+
+  // Fallback company extraction from Sender header (display name or domain)
+  if (company === 'Unknown Company' && sender) {
+    // E.g. "Stripe Recruiting <recruiting@stripe.com>" -> "Stripe Recruiting" or "stripe"
+    const nameMatch = sender.match(/^"?([^"<]+)"?\s*</);
+    if (nameMatch && nameMatch[1]) {
+      const display = nameMatch[1].replace(/(careers|recruiting|jobs|team|hiring|no-reply|notifications)/gi, '').trim();
+      if (display.length >= 2) company = display;
+    }
+    if (company === 'Unknown Company') {
+      const domainMatch = sender.match(/@([a-zA-Z0-9\-\.]+)\./);
+      if (domainMatch && domainMatch[1] && !['gmail', 'yahoo', 'outlook', 'hotmail', 'greenhouse', 'lever', 'workday', 'ashbyhq'].includes(domainMatch[1])) {
+        company = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
       }
     }
   }
@@ -205,12 +222,12 @@ function parseEmailHeuristics(subject: string, body: string): ParsedJobInfo {
     salary,
     status,
     notes,
-    isJobRelated: isJobRelated && company !== 'Unknown Company'
+    isJobRelated: isJobRelated
   };
 }
 
 // AI Groq Llama 3 API email parser
-export async function parseEmailWithAI(subject: string, body: string): Promise<ParsedJobInfo> {
+export async function parseEmailWithAI(subject: string, body: string, sender: string = ''): Promise<ParsedJobInfo> {
   if (isEmailBlacklisted(subject, body)) {
     console.log(`Programmatically filtered out blacklist email: "${subject}"`);
     return {
@@ -228,11 +245,14 @@ export async function parseEmailWithAI(subject: string, body: string): Promise<P
   // Fallback to heuristics if Groq API key is not configured
   if (!apiKey || apiKey === 'YOUR_GROQ_API_KEY' || apiKey.trim() === '') {
     console.log('Groq API key not found. Using local regex/heuristics parser.');
-    return parseEmailHeuristics(subject, body);
+    return parseEmailHeuristics(subject, body, sender);
   }
 
+  // Truncate email body to max 4000 characters to prevent prompt pollution or context overload
+  const truncatedBody = body.length > 4000 ? body.substring(0, 4000) + '... [truncated]' : body;
+
   try {
-    const prompt = `You are an expert AI parser designed to scan emails in both English and German, detecting job application status updates. Analyze the email subject and body carefully.
+    const prompt = `You are an expert AI parser designed to scan emails in both English and German, detecting job application status updates. Analyze the email sender (From field), subject, and body carefully.
 
 First, determine if this email is directly related to a job application process (e.g. applying to a job, scheduling interviews, candidate follow-ups, rejections, or job offers). Set "isJobRelated" to true if it is.
 
@@ -243,8 +263,8 @@ CRITICAL: Set "isJobRelated" to false for:
 Only set "isJobRelated" to true if the email is a genuine communication from a recruiter, hiring team, or automated jobs platform regarding an actual job application.
 
 Extract the following information:
-- company: The official brand name of the company hiring (e.g. "Stripe", "Google", "BMW"). Be extremely precise. Avoid generic terms like "Careers Team", "Jobs", "Recruitment", "HR", or "No-Reply". If you cannot extract a specific company, default to "Unknown Company".
-- position: The job title. For German job titles, please translate them to their English equivalent (e.g. "Softwareentwickler" should be translated to "Software Engineer") for consistency. If not explicitly mentioned, default to "Software Engineer".
+- company: The official brand name of the company hiring (e.g. "Stripe", "Google", "BMW", "Siemens"). Be extremely precise. Extract from body, subject, OR the Sender field (e.g., if Sender is "Stripe Careers <recruiting@stripe.com>", company is "Stripe"). Avoid generic terms like "Careers Team", "Jobs", "Recruitment", "HR", "No-Reply", or "Sender". If you cannot extract a specific company name or brand domain, default to "Unknown Company".
+- position: The job title (e.g. "Senior Software Engineer", "Product Manager"). For German job titles, please translate them to their English equivalent (e.g. "Softwareentwickler" should be translated to "Software Engineer") for consistency. If not explicitly mentioned, default to "Software Engineer".
 - salary: Expected salary or rate if mentioned, otherwise "Not Specified".
 - status: Set this to exactly one of the following based on the context: 
   * "Applied" (for standard submission confirmations, application receipts, thank-you-for-applying / "Vielen Dank für Ihre Bewerbung" emails)
@@ -253,9 +273,10 @@ Extract the following information:
   * "Rejected" (if they decline, pass, send a rejection, state they are not moving forward with your candidacy, or write that they cannot offer you the role / "Absage" / "Leider nicht berücksichtigt" / "Unfortunately")
 - notes: A concise 1-2 sentence professional summary of what this email says and if there are immediate steps required. If the email is in German, write the summary notes in English.
 
+Email Sender (From): ${sender || 'Unknown Sender'}
 Email Subject: ${subject}
 Email Body:
-${body}
+${truncatedBody}
 
 You MUST return only a valid JSON object matching this schema:
 {
@@ -305,17 +326,9 @@ You MUST return only a valid JSON object matching this schema:
       parsedJson.status = 'Applied';
     }
     
-    // Safety check on isJobRelated — only suppress when company couldn't be
-    // detected AND there's no meaningful status signal (raw default "Applied").
-    // Don't kill emails just because company extraction failed; the job might
-    // still be legitimately trackable.
-    if ((parsedJson.company === 'Unknown Company' || !parsedJson.company) && parsedJson.status === 'Applied') {
-      parsedJson.isJobRelated = false;
-    }
-    
     return parsedJson;
   } catch (error) {
     console.error('Groq AI email parsing failed, falling back to heuristics:', error);
-    return parseEmailHeuristics(subject, body);
+    return parseEmailHeuristics(subject, body, sender);
   }
 }
