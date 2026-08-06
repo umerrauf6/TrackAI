@@ -186,18 +186,22 @@ function parseEmailHeuristics(subject: string, body: string, sender: string = ''
     cleanSubject.includes('kennenlernen') || 
     cleanSubject.includes('screening') || 
     cleanSubject.includes('phone screen') || 
-    cleanBody.includes('schedule') || 
+    cleanBody.includes('schedule an interview') || 
+    cleanBody.includes('schedule a call') || 
+    cleanBody.includes('schedule a meeting') || 
+    cleanBody.includes('schedule time') || 
     cleanBody.includes('interview') || 
     cleanBody.includes('gespräch') || 
     cleanBody.includes('kennenlernen') || 
     cleanBody.includes('telefonat') || 
     cleanBody.includes('vorstellungsgespräch') || 
-    cleanBody.includes('phone call') || 
-    cleanBody.includes('video call') || 
-    cleanBody.includes('hackerank') || 
+    cleanBody.includes('phone screen') || 
+    cleanBody.includes('video interview') || 
+    cleanBody.includes('hackerrank') || 
     cleanBody.includes('codility') || 
     cleanBody.includes('technical assessment') || 
-    cleanBody.includes('take-home');
+    cleanBody.includes('take-home assessment') || 
+    cleanBody.includes('coding challenge');
 
   if (hasRejectionKeywords) {
     status = 'Rejected';

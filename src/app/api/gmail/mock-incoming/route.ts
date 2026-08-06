@@ -52,6 +52,14 @@ export async function POST(req: NextRequest) {
     // Run AI parser (powered by Groq)
     const parsedInfo = await parseEmailWithAI(subject, bodyText, sender);
 
+    // Skip emails that are not job-related (same guard as the real Gmail sync)
+    if (parsedInfo.isJobRelated === false) {
+      return NextResponse.json(
+        { error: 'This email does not appear to be job-related and was not added.' },
+        { status: 422 }
+      );
+    }
+
     // Save or update job in DB
     const job = await upsertGmailJob(userId, parsedInfo, mockMessageId, sender, activeJobs, subject, bodyText);
 
