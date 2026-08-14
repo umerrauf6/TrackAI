@@ -206,7 +206,7 @@ function LoginContent() {
             {/* Header */}
             <div style={{ textAlign: 'center', marginBottom: 32 }}>
               <div style={{ marginBottom: 16, display: 'inline-block' }}><Logo size={44} /></div>
-              <h2 style={{ fontSize: 24, fontWeight: 700, color: 'white', marginBottom: 6 }}>Sign In to TrackAI</h2>
+              <h2 style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>Sign In to TrackAI</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
                 <Sparkles size={12} color="var(--accent)" /> No password needed — we'll email you a code
               </p>
@@ -232,7 +232,7 @@ function LoginContent() {
                     autoFocus
                     style={{
                       width: '100%', padding: '13px 14px 13px 42px', background: 'var(--glass-bg)',
-                      border: '1px solid var(--border-color)', borderRadius: 8, color: 'white',
+                      border: '1px solid var(--border-color)', borderRadius: 8, color: 'var(--text-primary)',
                       fontSize: 14, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.15s',
                     }}
                     onFocus={e => (e.target.style.borderColor = 'var(--accent)')}
@@ -243,7 +243,7 @@ function LoginContent() {
 
               <motion.button whileHover={{ scale: 1.01, y: -1 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading}
                 style={{
-                  background: 'var(--accent)', border: 'none', color: 'white',
+                  background: 'var(--accent)', border: 'none', color: 'var(--text-primary)',
                   padding: '14px', borderRadius: 8, fontSize: 14, fontWeight: 600,
                   cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
@@ -302,7 +302,7 @@ function LoginContent() {
               >
                 <KeyRound size={26} color="var(--accent)" />
               </motion.div>
-              <h2 style={{ fontSize: 22, fontWeight: 700, color: 'white', marginBottom: 6 }}>Check Your Email</h2>
+              <h2 style={{ fontSize: 22, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>Check Your Email</h2>
               <p style={{ color: 'var(--text-secondary)', fontSize: 13, lineHeight: 1.5, marginBottom: 4 }}>
                 {otpMessage}
               </p>
@@ -336,7 +336,7 @@ function LoginContent() {
                       borderRadius: 10,
                       border: `2px solid ${digit ? 'var(--accent)' : 'var(--border-color)'}`,
                       background: digit ? 'rgba(192,132,252,0.08)' : 'rgba(255,255,255,0.03)',
-                      color: 'white',
+                      color: 'var(--text-primary)',
                       outline: 'none',
                       transition: 'border-color 0.15s, background 0.15s',
                       caretColor: 'var(--accent)',
@@ -348,7 +348,7 @@ function LoginContent() {
 
               <motion.button whileHover={{ scale: 1.01 }} whileTap={{ scale: 0.98 }} type="submit" disabled={loading}
                 style={{
-                  width: '100%', background: 'var(--accent)', border: 'none', color: 'white',
+                  width: '100%', background: 'var(--accent)', border: 'none', color: 'var(--text-primary)',
                   padding: '14px', borderRadius: 8, fontSize: 14, fontWeight: 600,
                   cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1,
                   boxShadow: '0 4px 20px rgba(139,92,246,0.3)',

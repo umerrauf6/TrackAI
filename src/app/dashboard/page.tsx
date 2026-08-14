@@ -355,9 +355,9 @@ function DashboardContent() {
         <div>
           {/* Brand Logo & Name */}
           <div className="sidebar-brand">
-            <h2 className="brand-font" style={{ fontSize: 20, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, color: 'white' }}>
+            <h2 className="brand-font" style={{ fontSize: 20, fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8, color: 'var(--text-primary)' }}>
               <Logo size={20} />
-              <span style={{ background: 'linear-gradient(to right, #D4AF37, #E6C766)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackAI</span>
+              <span style={{ background: 'linear-gradient(to right, #475569, #64748B)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackAI</span>
             </h2>
             <span style={{ fontSize: 9, color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.08em', marginTop: 4, display: 'block' }}>
               PLATINUM MEMBER
@@ -427,7 +427,7 @@ function DashboardContent() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: 'white',
+                color: 'var(--text-primary)',
                 cursor: 'pointer',
                 padding: '4px 8px 4px 0',
                 alignItems: 'center'
@@ -479,7 +479,7 @@ function DashboardContent() {
             {/* Profile Dropdown */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{user.name}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{user.name}</span>
                 <span style={{ fontSize: 9, color: 'var(--gold-primary)', fontWeight: 700, letterSpacing: '0.05em' }}>PLATINUM MEMBER</span>
               </div>
               <Link href="/profile" style={{ textDecoration: 'none' }}>
@@ -591,8 +591,8 @@ function DashboardContent() {
                 animate={{ height: 'auto', opacity: 1, y: 0 }}
                 exit={{ height: 0, opacity: 0, y: -20 }}
                 style={{
-                  background: 'rgba(212, 175, 55, 0.1)',
-                  border: '1px solid rgba(212, 175, 55, 0.2)',
+                  background: 'rgba(71, 85, 105, 0.1)',
+                  border: '1px solid rgba(71, 85, 105, 0.2)',
                   borderRadius: 12,
                   padding: '12px 20px',
                   marginBottom: 20,
@@ -668,9 +668,9 @@ function DashboardContent() {
               display: 'flex',
               alignItems: 'center',
               gap: 20,
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.2)',
-              border: '1px solid rgba(212, 175, 55, 0.3)',
-              background: 'rgba(10, 11, 16, 0.85)',
+              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5), 0 0 30px rgba(71, 85, 105, 0.2)',
+              border: '1px solid rgba(71, 85, 105, 0.3)',
+              background: 'rgba(255, 255, 255, 0.96)',
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
             }}
@@ -721,7 +721,7 @@ function DashboardContent() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 6,
-                  color: 'white'
+                  color: 'var(--text-primary)'
                 }}
               >
                 <Trash2 size={13} />

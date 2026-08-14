@@ -58,7 +58,7 @@ export default function JobCard({
         y: -4, 
         scale: 1.01, 
         boxShadow: isSelected 
-          ? '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 20px rgba(212, 175, 55, 0.2)' 
+          ? '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 20px rgba(71, 85, 105, 0.2)' 
           : '0 25px 60px rgba(0, 0, 0, 0.45), 0 0 20px rgba(255, 255, 255, 0.02)' 
       }}
       transition={{ type: 'spring', stiffness: 300, damping: 25 }}
@@ -70,8 +70,8 @@ export default function JobCard({
         position: 'relative',
         padding: '20px 24px',
         cursor: 'pointer',
-        border: isSelected ? '1px solid rgba(212, 175, 55, 0.4)' : '1px solid rgba(255, 255, 255, 0.05)',
-        boxShadow: isSelected ? '0 0 20px rgba(212, 175, 55, 0.15)' : undefined,
+        border: isSelected ? '1px solid rgba(71, 85, 105, 0.4)' : '1px solid rgba(255, 255, 255, 0.05)',
+        boxShadow: isSelected ? '0 0 20px rgba(71, 85, 105, 0.15)' : undefined,
         display: 'flex',
         flexDirection: 'column',
         gap: 14
@@ -87,8 +87,8 @@ export default function JobCard({
           width: 16,
           height: 16,
           borderRadius: 4,
-          border: isSelected ? '1px solid var(--gold-primary)' : '1px solid rgba(255, 255, 255, 0.3)',
-          background: isSelected ? 'var(--gold-primary)' : 'rgba(10, 11, 16, 0.8)',
+          border: isSelected ? '1px solid var(--accent)' : '1px solid var(--border-hover)',
+          background: isSelected ? 'var(--accent)' : '#FFFFFF',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -98,7 +98,7 @@ export default function JobCard({
           transition: 'opacity 0.2s ease, background-color 0.2s ease'
         }}
       >
-        {isSelected && <Check size={10} color="#09090B" strokeWidth={3} />}
+        {isSelected && <Check size={10} color="#FFFFFF" strokeWidth={3} />}
       </div>
 
       {/* Row 1: Logo Icon Box & Suffix Tag */}
@@ -124,8 +124,8 @@ export default function JobCard({
           fontSize: 9,
           fontWeight: 700,
           color: job.source === 'gmail' ? 'var(--gold-primary)' : 'var(--text-secondary)',
-          background: job.source === 'gmail' ? 'rgba(212, 175, 55, 0.1)' : 'rgba(255, 255, 255, 0.03)',
-          border: job.source === 'gmail' ? '1px solid rgba(212, 175, 55, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
+          background: job.source === 'gmail' ? 'rgba(71, 85, 105, 0.1)' : 'rgba(255, 255, 255, 0.03)',
+          border: job.source === 'gmail' ? '1px solid rgba(71, 85, 105, 0.2)' : '1px solid rgba(255, 255, 255, 0.05)',
           padding: '3px 8px',
           borderRadius: 20,
           letterSpacing: '0.05em',
@@ -140,7 +140,7 @@ export default function JobCard({
         <h4 style={{ 
           fontSize: 16, 
           fontWeight: 700, 
-          color: 'white', 
+          color: 'var(--text-primary)', 
           overflow: 'hidden', 
           textOverflow: 'ellipsis', 
           whiteSpace: 'nowrap',

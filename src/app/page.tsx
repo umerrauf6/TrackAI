@@ -51,7 +51,7 @@ export default function LandingPage() {
       <header ref={headerRef} className="glass-panel landing-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Logo size={32} />
-          <span className="brand-font" style={{ fontSize: 20, fontWeight: 800, background: 'linear-gradient(to right, #D4AF37, #E6C766)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackAI</span>
+          <span className="brand-font" style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' }}>TrackAI</span>
         </div>
 
         <nav className="flex items-center" style={{ gap: 24 }}>
@@ -72,8 +72,8 @@ export default function LandingPage() {
             alignItems: 'center',
             gap: 8,
             padding: '6px 12px',
-            background: 'rgba(139, 92, 246, 0.1)',
-            border: '1px solid rgba(139, 92, 246, 0.2)',
+            background: '#EEF1F4',
+            border: '1px solid var(--border-color)',
             borderRadius: '20px',
             color: 'var(--accent)',
             fontSize: 12,
@@ -88,9 +88,7 @@ export default function LandingPage() {
             fontWeight: 800,
             lineHeight: 1.15,
             marginBottom: 20,
-            background: 'linear-gradient(to bottom, #ffffff 60%, #9ca3af 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            color: 'var(--text-primary)',
             maxWidth: 900,
             margin: '0 auto 20px auto'
           }}>
@@ -124,21 +122,21 @@ export default function LandingPage() {
             maxWidth: 950,
             margin: '0 auto',
             border: '1px solid rgba(255, 255, 255, 0.08)',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 80px rgba(139, 92, 246, 0.1)',
+            boxShadow: '0 24px 60px rgba(15, 23, 42, 0.10)',
             overflow: 'hidden'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, borderBottom: '1px solid var(--border-color)', paddingBottom: 12, marginBottom: 16 }}>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }}></div>
-              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b' }}></div>
+              <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#64748b' }}></div>
               <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981' }}></div>
               <span style={{ fontSize: 12, color: 'var(--text-muted)', marginLeft: 10 }}>app.trackai.com/dashboard</span>
             </div>
             
             {/* Visual Email to Card Stagger Demo */}
             <div className="mockup-grid">
-              <div className="glass-panel" style={{ padding: 16, background: 'rgba(0, 0, 0, 0.25)', borderRadius: 10 }}>
+              <div className="glass-panel" style={{ padding: 16, background: '#F7F8FA', borderRadius: 10 }}>
                 <span style={{ fontSize: 10, color: 'var(--accent)', fontWeight: 600 }}>INCOMING GMAIL DETECTED</span>
-                <h4 style={{ fontSize: 13, margin: '4px 0', color: 'white' }}>Google Careers</h4>
+                <h4 style={{ fontSize: 13, margin: '4px 0', color: 'var(--text-primary)' }}>Google Careers</h4>
                 <p style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, fontStyle: 'italic' }}>"Thank you for applying to the Software Engineer role..."</p>
                 <div style={{ height: 1, background: 'var(--border-color)', margin: '8px 0' }}></div>
                 <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>Status: Auto-detected applied state</span>
@@ -149,12 +147,12 @@ export default function LandingPage() {
                     <span className="status-tag status-Applied" style={{ fontSize: 9 }}>Applied</span>
                     <span style={{ fontSize: 8, color: 'var(--text-muted)' }}>Auto-Synced</span>
                   </div>
-                  <h4 style={{ fontSize: 13, color: 'white', marginBottom: 2 }}>Google</h4>
+                  <h4 style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 2 }}>Google</h4>
                   <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Software Engineer</p>
                 </div>
                 <div className="glass-panel" style={{ padding: 12, borderRadius: 10, opacity: 0.5, borderLeft: '4px solid hsl(var(--status-interviewing))' }}>
                   <span className="status-tag status-Interviewing" style={{ fontSize: 9, marginBottom: 6 }}>Interviewing</span>
-                  <h4 style={{ fontSize: 13, color: 'white', marginBottom: 2 }}>Stripe</h4>
+                  <h4 style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 2 }}>Stripe</h4>
                   <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Frontend Architect</p>
                 </div>
               </div>
@@ -176,7 +174,7 @@ export default function LandingPage() {
               <div style={{ background: 'rgba(139, 92, 246, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent)', marginBottom: 16 }}>
                 <Mail size={22} />
               </div>
-              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Gmail Synchronization</h3>
+              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'var(--text-primary)' }}>Gmail Synchronization</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.5 }}>
                 Sync with a single click. We scan relevant subject lines and messages automatically, identifying applications in real-time.
               </p>
@@ -186,7 +184,7 @@ export default function LandingPage() {
               <div style={{ background: 'rgba(59, 130, 246, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', marginBottom: 16 }}>
                 <Sparkles size={22} />
               </div>
-              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Groq AI Parsing</h3>
+              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'var(--text-primary)' }}>Groq AI Parsing</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.5 }}>
                 Our integrated language model reads complex email threads to extract positions, salary ranges, deadlines, and contacts.
               </p>
@@ -196,17 +194,17 @@ export default function LandingPage() {
               <div style={{ background: 'rgba(16, 185, 129, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', marginBottom: 16 }}>
                 <Kanban size={22} />
               </div>
-              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Kanban Management</h3>
+              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'var(--text-primary)' }}>Kanban Management</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.5 }}>
                 Organize your pipeline through columns from bookmark to final offers. Smooth layout shifts keep everything clean.
               </p>
             </div>
 
             <div className="glass-panel feature-card" style={{ padding: 24 }}>
-              <div style={{ background: 'rgba(245, 158, 11, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b', marginBottom: 16 }}>
+              <div style={{ background: 'rgba(245, 158, 11, 0.1)', width: 44, height: 44, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b', marginBottom: 16 }}>
                 <CheckSquare size={22} />
               </div>
-              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'white' }}>Dynamic Prep Tasks</h3>
+              <h3 style={{ fontSize: 18, marginBottom: 8, color: 'var(--text-primary)' }}>Dynamic Prep Tasks</h3>
               <p style={{ color: 'var(--text-secondary)', fontSize: 14, lineHeight: 1.5 }}>
                 Status changes auto-generate interview check-lists (e.g. mock screens, recruiter follow-ups) to keep you ready.
               </p>

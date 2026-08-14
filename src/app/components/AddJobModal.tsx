@@ -100,11 +100,11 @@ export default function AddJobModal({ isOpen, onClose, onAddJob }: AddJobModalPr
           >
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
-              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'white' }}>Track New Application</h3>
+              <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--text-primary)' }}>Track New Application</h3>
               <button 
                 onClick={onClose} 
                 className="btn btn-text" 
-                style={{ padding: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+                style={{ padding: 6, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}
               >
                 <X size={16} />
               </button>

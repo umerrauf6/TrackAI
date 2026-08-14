@@ -150,7 +150,7 @@ export default function JobDetailsDrawer({
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '-15px 0 50px rgba(0,0,0,0.6)',
-          background: '#09090b',
+          background: '#FFFFFF',
         }}
       >
         
@@ -175,7 +175,7 @@ export default function JobDetailsDrawer({
                 {job.company[0].toUpperCase()}
               </div>
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'white', margin: 0, fontFamily: 'var(--font-header)' }}>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)', margin: 0, fontFamily: 'var(--font-header)' }}>
                   {job.position}
                 </h2>
                 <p style={{ fontSize: 13, color: 'var(--gold-primary)', fontWeight: 600, margin: 0 }}>
@@ -195,7 +195,7 @@ export default function JobDetailsDrawer({
               </button>
               <button 
                 onClick={onClose} 
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%', color: 'white', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '50%', color: 'var(--text-primary)', cursor: 'pointer', width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
                 <X size={14} />
               </button>
@@ -218,7 +218,7 @@ export default function JobDetailsDrawer({
             <>
               {/* Metadata Info Boxes */}
               <div className="form-grid-2col">
-                <div style={{ background: '#111113', border: '1px solid var(--border-color)', borderRadius: 16, padding: 16 }}>
+                <div style={{ background: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 16, padding: 16 }}>
                   <label style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Package Range</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <DollarSign size={14} color="var(--gold-primary)" />
@@ -231,7 +231,7 @@ export default function JobDetailsDrawer({
                     />
                   </div>
                 </div>
-                <div style={{ background: '#111113', border: '1px solid var(--border-color)', borderRadius: 16, padding: 16 }}>
+                <div style={{ background: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 16, padding: 16 }}>
                   <label style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>Posting Location URL</label>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <LinkIcon size={14} color="var(--text-secondary)" />
@@ -258,7 +258,7 @@ export default function JobDetailsDrawer({
                   onChange={(e) => setNotes(e.target.value)}
                   onBlur={handleNotesBlur}
                   placeholder="Paste details, logs, or comments here. Autosaved on blur."
-                  style={{ resize: 'vertical', lineHeight: 1.6, padding: 16, background: '#111113', border: '1px solid var(--border-color)', borderRadius: 16 }}
+                  style={{ resize: 'vertical', lineHeight: 1.6, padding: 16, background: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 16 }}
                 />
                 {savingNotes && <span style={{ fontSize: 11, color: 'var(--gold-primary)', marginTop: 4 }}>Saving profile...</span>}
               </div>
@@ -282,7 +282,7 @@ export default function JobDetailsDrawer({
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        background: '#111113',
+                        background: '#FFFFFF',
                         border: '1px solid var(--border-color)',
                         padding: '12px 16px',
                         borderRadius: 12
@@ -323,7 +323,7 @@ export default function JobDetailsDrawer({
                   value={newTaskText}
                   onChange={(e) => setNewTaskText(e.target.value)}
                   placeholder="Insert checklist item..."
-                  style={{ padding: '10px 14px', flex: 1, background: '#111113', border: '1px solid var(--border-color)', borderRadius: 12 }}
+                  style={{ padding: '10px 14px', flex: 1, background: '#FFFFFF', border: '1px solid var(--border-color)', borderRadius: 12 }}
                 />
                 <button type="submit" className="btn btn-secondary" style={{ padding: '10px 14px', borderRadius: 12 }}>
                   <Plus size={16} />
@@ -337,7 +337,7 @@ export default function JobDetailsDrawer({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
               {/* Gmail Sync Log metadata (if synced) */}
               {job.source === 'gmail' && job.emailSender && (
-                <div style={{ background: 'rgba(212, 175, 55, 0.04)', border: '1px solid rgba(212, 175, 55, 0.15)', borderRadius: 16, padding: 16 }}>
+                <div style={{ background: 'rgba(71, 85, 105, 0.04)', border: '1px solid rgba(71, 85, 105, 0.15)', borderRadius: 16, padding: 16 }}>
                   <h4 style={{ fontSize: 12, color: 'var(--gold-primary)', display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     <Mail size={14} /> Gmail Sync Details
                   </h4>
@@ -388,8 +388,8 @@ export default function JobDetailsDrawer({
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: 6,
-                                background: 'rgba(212, 175, 55, 0.08)',
-                                border: '1px solid rgba(212, 175, 55, 0.15)',
+                                background: 'rgba(71, 85, 105, 0.08)',
+                                border: '1px solid rgba(71, 85, 105, 0.15)',
                                 color: 'var(--gold-primary)',
                                 padding: '4px 10px',
                                 borderRadius: 6,

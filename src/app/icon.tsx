@@ -9,8 +9,8 @@ export default function Icon() {
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
       <defs>
         <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stop-color="#D4AF37" />
-          <stop offset="100%" stop-color="#E6C766" />
+          <stop offset="0%" stop-color="#475569" />
+          <stop offset="100%" stop-color="#64748B" />
         </linearGradient>
       </defs>
       <rect width="32" height="32" rx="8" fill="url(#grad)" />

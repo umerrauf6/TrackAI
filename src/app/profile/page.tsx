@@ -126,7 +126,7 @@ function ProfileContent() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 32 }}>
           <Logo size={44} />
           <div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: 'white', margin: 0 }}>Account Settings</h2>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--text-primary)', margin: 0 }}>Account Settings</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: 4 }}>
               <Sparkles size={12} color="var(--accent)" /> Manage your TrackAI profile
             </p>
@@ -155,23 +155,23 @@ function ProfileContent() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {/* Section 1: User Info */}
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Information</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'rgba(0,0,0,0.15)', padding: 16, borderRadius: 10, border: '1px solid var(--border-color)' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>User Information</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: '#F7F8FA', padding: 16, borderRadius: 10, border: '1px solid var(--border-color)' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}><User size={14} /> Name</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{user.name}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{user.name}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}><Mail size={14} /> Email Address</span>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{user.email}</span>
+                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{user.email}</span>
               </div>
             </div>
           </div>
 
           {/* Section 2: Gmail Sync Settings */}
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gmail & AI Integration</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'rgba(0,0,0,0.15)', padding: 16, borderRadius: 10, border: '1px solid var(--border-color)' }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 12, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Gmail & AI Integration</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: '#F7F8FA', padding: 16, borderRadius: 10, border: '1px solid var(--border-color)' }}>
               
               {user.googleEmail ? (
                 <>
@@ -179,9 +179,9 @@ function ProfileContent() {
                     <span style={{ fontSize: 13, color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: 6 }}><ShieldCheck size={14} color={user.gmailSyncActive ? "#10b981" : "var(--gold-primary)"} /> Connection Status</span>
                     <span style={{
                       fontSize: 11,
-                      background: user.gmailSyncActive ? 'rgba(16,185,129,0.1)' : 'rgba(212,175,55,0.1)',
+                      background: user.gmailSyncActive ? 'rgba(16,185,129,0.1)' : 'rgba(71, 85, 105,0.1)',
                       color: user.gmailSyncActive ? '#10b981' : 'var(--gold-primary)',
-                      border: user.gmailSyncActive ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(212,175,55,0.2)',
+                      border: user.gmailSyncActive ? '1px solid rgba(16,185,129,0.2)' : '1px solid rgba(71, 85, 105,0.2)',
                       padding: '2px 8px',
                       borderRadius: 20,
                       fontWeight: 700
@@ -190,13 +190,13 @@ function ProfileContent() {
                     </span>
                   </div>
                   {!user.gmailSyncActive && (
-                    <div style={{ padding: '10px 14px', background: 'rgba(212, 175, 55, 0.08)', border: '1px solid rgba(212, 175, 55, 0.18)', borderRadius: 8, color: 'var(--gold-primary)', fontSize: 12, lineHeight: 1.4 }}>
+                    <div style={{ padding: '10px 14px', background: 'rgba(71, 85, 105, 0.08)', border: '1px solid rgba(71, 85, 105, 0.18)', borderRadius: 8, color: 'var(--gold-primary)', fontSize: 12, lineHeight: 1.4 }}>
                       Gmail sync is currently inactive because the required access permission is missing. Please <a href="/api/auth/google" style={{ color: 'var(--gold-primary)', textDecoration: 'underline', fontWeight: 600 }}>reconnect your Google Account</a> and verify that you check the checkbox for Gmail read access.
                     </div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Linked Google Email</span>
-                    <span style={{ fontSize: 13, fontWeight: 600, color: 'white' }}>{user.googleEmail}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{user.googleEmail}</span>
                   </div>
                   {user.lastSyncedTime && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -245,7 +245,7 @@ function ProfileContent() {
 export default function ProfilePage() {
   return (
     <Suspense fallback={
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-primary)' }}>
         Loading Settings...
       </div>
     }>

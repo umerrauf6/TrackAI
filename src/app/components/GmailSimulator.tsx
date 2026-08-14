@@ -147,7 +147,7 @@ export default function GmailSimulator({ isOpen, onClose, onNewJobSynced }: Gmai
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '10px 0 40px rgba(0,0,0,0.5)',
-          background: 'rgba(10, 11, 18, 0.95)'
+          background: 'rgba(255, 255, 255, 0.98)'
         }}
       >
         {/* Header */}
@@ -162,14 +162,14 @@ export default function GmailSimulator({ isOpen, onClose, onNewJobSynced }: Gmai
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <Inbox size={20} color="var(--accent)" />
             <div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'white' }}>Gmail Inbox Simulator</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>Gmail Inbox Simulator</h2>
               <p style={{ fontSize: 11, color: 'var(--text-secondary)' }}>Send mock emails to test the Groq AI parser auto-detector</p>
             </div>
           </div>
           <button 
             onClick={onClose} 
             className="btn btn-text" 
-            style={{ padding: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', color: 'white' }}
+            style={{ padding: 8, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', color: 'var(--text-primary)' }}
           >
             <X size={16} />
           </button>
@@ -254,7 +254,7 @@ export default function GmailSimulator({ isOpen, onClose, onNewJobSynced }: Gmai
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                       <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#ef4444' }}></div>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: 'white' }}>{email.senderName}</span>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{email.senderName}</span>
                       <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>&lt;{email.senderEmail}&gt;</span>
                     </div>
                     
@@ -275,7 +275,7 @@ export default function GmailSimulator({ isOpen, onClose, onNewJobSynced }: Gmai
 
                   {/* Subject & body snippet */}
                   <div>
-                    <h4 style={{ fontSize: 13, color: 'white', marginBottom: 4 }}>{email.subject}</h4>
+                    <h4 style={{ fontSize: 13, color: 'var(--text-primary)', marginBottom: 4 }}>{email.subject}</h4>
                     <p style={{ fontSize: 12, color: 'var(--text-secondary)', lineHeight: 1.4 }}>{email.snippet}</p>
                   </div>
 

@@ -42,7 +42,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
       {/* Title & Subtitle header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'white', marginBottom: 6 }}>Performance Analytics</h1>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>Performance Analytics</h1>
           <p style={{ fontSize: 13, color: 'var(--text-secondary)' }}>
             Advanced metrics for the career-focused executive. Real-time pipeline processing and velocity tracking.
           </p>
@@ -77,7 +77,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
           </div>
           <div>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Applications</span>
-            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'white', marginTop: 4 }}>{total}</h3>
+            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{total}</h3>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: 12 }}>
             <span>Pipeline Ingested</span>
@@ -101,13 +101,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             }}>
               <Trophy size={18} />
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-primary)', background: 'rgba(212,175,55,0.1)', padding: '2px 8px', borderRadius: 20 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-primary)', background: 'rgba(71, 85, 105,0.1)', padding: '2px 8px', borderRadius: 20 }}>
               +12.5%
             </span>
           </div>
           <div>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Offers</span>
-            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'white', marginTop: 4 }}>{formattedOffers}</h3>
+            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>{formattedOffers}</h3>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', borderTop: '1px solid var(--border-color)', paddingTop: 12 }}>
             <span>L-In Conversion: 3.2x</span>
@@ -137,7 +137,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
           </div>
           <div>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Response Velocity</span>
-            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'white', marginTop: 4 }}>
+            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
               {velocityDays}<span style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-secondary)', marginLeft: 4 }}>days</span>
             </h3>
           </div>
@@ -163,13 +163,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             }}>
               <TrendingUp size={18} />
             </div>
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-primary)', background: 'rgba(212,175,55,0.1)', padding: '2px 8px', borderRadius: 20 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--gold-primary)', background: 'rgba(71, 85, 105,0.1)', padding: '2px 8px', borderRadius: 20 }}>
               +5%
             </span>
           </div>
           <div>
             <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Success Rate</span>
-            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'white', marginTop: 4 }}>
+            <h3 style={{ fontSize: 36, fontWeight: 700, color: 'var(--text-primary)', marginTop: 4 }}>
               {successRate}<span style={{ fontSize: 18, fontWeight: 500, color: 'var(--text-secondary)', marginLeft: 4 }}>%</span>
             </h3>
           </div>
@@ -188,7 +188,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
       }}>
         {/* Pipeline Distribution Bar Chart */}
         <div className="glass-panel" style={{ padding: 30, borderRadius: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'white', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 24, display: 'flex', alignItems: 'center', gap: 8 }}>
             <BarChart3 size={18} color="var(--gold-primary)" /> Pipeline Distribution
           </h3>
 
@@ -197,13 +197,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                 <span>Initial Bookmarked</span>
-                <span style={{ color: 'white' }}>{bookmarked}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{bookmarked}</span>
               </div>
               <div style={{ height: 16, background: 'rgba(255,255,255,0.02)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${(bookmarked / maxVal) * 100}%`,
-                  background: 'linear-gradient(90deg, rgba(212,175,55,0.4), var(--gold-primary))',
+                  background: 'linear-gradient(90deg, rgba(71, 85, 105,0.4), var(--gold-primary))',
                   borderRadius: 4,
                   transition: 'width 1s ease-out'
                 }}></div>
@@ -214,13 +214,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                 <span>Applications Submitted</span>
-                <span style={{ color: 'white' }}>{applied}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{applied}</span>
               </div>
               <div style={{ height: 16, background: 'rgba(255,255,255,0.02)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${(applied / maxVal) * 100}%`,
-                  background: 'linear-gradient(90deg, rgba(212,175,55,0.3), rgba(212,175,55,0.8))',
+                  background: 'linear-gradient(90deg, rgba(71, 85, 105,0.3), rgba(71, 85, 105,0.8))',
                   borderRadius: 4,
                   transition: 'width 1s ease-out'
                 }}></div>
@@ -231,13 +231,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                 <span>Executive Interviews</span>
-                <span style={{ color: 'white' }}>{interviewing}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{interviewing}</span>
               </div>
               <div style={{ height: 16, background: 'rgba(255,255,255,0.02)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${(interviewing / maxVal) * 100}%`,
-                  background: 'linear-gradient(90deg, rgba(212,175,55,0.2), rgba(212,175,55,0.5))',
+                  background: 'linear-gradient(90deg, rgba(71, 85, 105,0.2), rgba(71, 85, 105,0.5))',
                   borderRadius: 4,
                   transition: 'width 1s ease-out'
                 }}></div>
@@ -248,13 +248,13 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                 <span>Offer Stages</span>
-                <span style={{ color: 'white' }}>{offer}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{offer}</span>
               </div>
               <div style={{ height: 16, background: 'rgba(255,255,255,0.02)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{
                   height: '100%',
                   width: `${(offer / maxVal) * 100}%`,
-                  background: 'linear-gradient(90deg, rgba(212,175,55,0.1), rgba(212,175,55,0.3))',
+                  background: 'linear-gradient(90deg, rgba(71, 85, 105,0.1), rgba(71, 85, 105,0.3))',
                   borderRadius: 4,
                   transition: 'width 1s ease-out'
                 }}></div>
@@ -265,7 +265,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
             <div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 6 }}>
                 <span>Rejected / Archived</span>
-                <span style={{ color: 'white' }}>{rejected}</span>
+                <span style={{ color: 'var(--text-primary)' }}>{rejected}</span>
               </div>
               <div style={{ height: 16, background: 'rgba(255,255,255,0.02)', borderRadius: 4, overflow: 'hidden' }}>
                 <div style={{
@@ -282,7 +282,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
 
         {/* Source Intelligence Doughnut Chart */}
         <div className="glass-panel" style={{ padding: 30, borderRadius: 20, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'white', marginBottom: 16 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 16 }}>
             Source Intelligence
           </h3>
 
@@ -325,7 +325,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
                 justifyContent: 'center',
                 fontFamily: 'var(--font-header)'
               }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: 'white' }}>{total}</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: 'var(--text-primary)' }}>{total}</span>
                 <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Total Apps</span>
               </div>
             </div>
@@ -337,14 +337,14 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--gold-primary)' }}></span>
                   Gmail Ingestion
                 </span>
-                <span style={{ fontWeight: 700, color: 'white' }}>{gmailPct}%</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{gmailPct}%</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12 }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)' }}>
                   <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3F3F46' }}></span>
                   Manual Ingestion
                 </span>
-                <span style={{ fontWeight: 700, color: 'white' }}>{manualPct}%</span>
+                <span style={{ fontWeight: 700, color: 'var(--text-primary)' }}>{manualPct}%</span>
               </div>
             </div>
           </div>
@@ -358,7 +358,7 @@ export default function AnalyticsSection({ jobs }: AnalyticsSectionProps) {
       {/* Row 3: Activity Timeline Chart */}
       <div className="glass-panel" style={{ padding: 30, borderRadius: 20 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Calendar size={18} color="var(--gold-primary)" /> Activity Timeline
           </h3>
           {/* Legend */}

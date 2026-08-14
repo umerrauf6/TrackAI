@@ -63,7 +63,7 @@ export default function Header({
         {/* Brand */}
         <div className="nav-brand">
           <Logo size={28} />
-          <span className="brand-font" style={{ fontSize: 18, fontWeight: 800, background: 'linear-gradient(to right, #D4AF37, #E6C766)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>TrackAI</span>
+          <span className="brand-font" style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-primary)' }}>TrackAI</span>
           <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', borderRadius: 4, padding: '2px 6px', color: 'var(--text-secondary)' }}>SaaS Pro</span>
         </div>
 
@@ -122,7 +122,7 @@ export default function Header({
         {/* User profile logout dropdown */}
         <div className="nav-profile">
           <Link href="/profile" className="profile-link">
-            <span className="profile-name" style={{ fontSize: 13, fontWeight: 600, color: 'white', transition: 'color 0.2s ease' }}>{user.name}</span>
+            <span className="profile-name" style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', transition: 'color 0.2s ease' }}>{user.name}</span>
             <span style={{ fontSize: 10, color: 'var(--text-secondary)' }}>User Dashboard</span>
           </Link>
           <button 
@@ -146,7 +146,7 @@ export default function Header({
         {/* Card 1 */}
         <div className="glass-panel" style={{ padding: 20, borderRadius: 14 }}>
           <span style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: 500 }}>Total Applications</span>
-          <h3 style={{ fontSize: 28, fontWeight: 800, color: 'white', marginTop: 4 }}>{totalApplications}</h3>
+          <h3 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', marginTop: 4 }}>{totalApplications}</h3>
           <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Scoped to active workspace</span>
         </div>
 

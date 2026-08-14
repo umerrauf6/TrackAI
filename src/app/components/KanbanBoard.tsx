@@ -75,7 +75,7 @@ export default function KanbanBoard({
               display: 'flex',
               flexDirection: 'column',
               gap: 16,
-              background: isHovered ? 'rgba(212, 175, 55, 0.03)' : 'transparent',
+              background: isHovered ? 'rgba(71, 85, 105, 0.03)' : 'transparent',
               border: isHovered ? '1px dashed var(--gold-border)' : '1px solid transparent',
               minWidth: 220,
               transition: 'background 0.2s ease, border-color 0.2s ease'
@@ -91,7 +91,7 @@ export default function KanbanBoard({
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span className={`status-dot status-${col.id}-dot`} style={{ width: 8, height: 8 }}></span>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: 'white', fontFamily: 'var(--font-header)' }}>{col.label}</h3>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', fontFamily: 'var(--font-header)' }}>{col.label}</h3>
                 <span style={{
                   fontSize: 11,
                   fontWeight: 600,
