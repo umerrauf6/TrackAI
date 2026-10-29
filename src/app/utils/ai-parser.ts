@@ -7,72 +7,147 @@ interface ParsedJobInfo {
   isJobRelated: boolean;
 }
 
+export const UNKNOWN_COMPANY = 'Unknown Company';
+export const UNKNOWN_POSITION = 'Unknown Position';
+
+const NOT_JOB_RELATED: ParsedJobInfo = {
+  company: UNKNOWN_COMPANY,
+  position: UNKNOWN_POSITION,
+  salary: 'Not Specified',
+  status: 'Applied',
+  notes: 'Ignored non-job email.',
+  isJobRelated: false
+};
+
+const includesAny = (text: string, terms: string[]) => terms.some(t => text.includes(t));
+
 // Programmatic filter for non-job, account/security confirmation emails
 function isEmailBlacklisted(subject: string, body: string): boolean {
   const cleanSubject = subject.toLowerCase();
   const cleanBody = body.toLowerCase();
 
   const blacklist = [
-    'oauth', 'security alert', 'authorized application', 'authorized app', 
-    'password reset', 'verify your email', 'two-factor', '2fa', 
+    'oauth', 'security alert', 'authorized application', 'authorized app',
+    'password reset', 'verify your email', 'two-factor', '2fa',
     'sign-in', 'signed in', 'login attempt', 'action required:', 'security key',
     'connected to your account', 'device sign-in', 'account access', 'connected app',
     'revoke access', 'revocation'
   ];
 
-  return blacklist.some(term => cleanSubject.includes(term) || cleanBody.includes(term));
+  // Job alerts / recommendations / newsletters are not applications the user made.
+  // Only checked against the subject: ATS emails often contain these words in the footer.
+  const subjectOnlyBlacklist = [
+    'job alert', 'jobs for you', 'recommended jobs', 'jobs you may be interested', 'new jobs',
+    'jobs matching', 'top jobs', 'job recommendations', 'jobalarm', 'neue jobs', 'passende jobs',
+    'newsletter', 'webinar', 'your order', 'order confirmation', 'invoice', 'rechnung',
+    'bestellbestätigung', 'subscription', 'abonnement', '% off', 'rabatt'
+  ];
+
+  return (
+    blacklist.some(term => cleanSubject.includes(term) || cleanBody.includes(term)) ||
+    subjectOnlyBlacklist.some(term => cleanSubject.includes(term))
+  );
+}
+
+// Phrases that only show up when the email is about the user's own application.
+// Generic words like "apply", "offer", "angebot" or "bestätigung" are deliberately
+// left out — they appear in marketing emails and caused non-job emails to be imported.
+const APPLICATION_PHRASES = [
+  'your application', 'thank you for applying', 'thanks for applying', 'thank you for your application',
+  'application received', 'received your application', 'application for', 'application to',
+  'application status', 'application update', 'your candidacy', 'your candidature', 'your interest in',
+  'thank you for your interest', 'thanks for your interest', 'thank you for considering',
+  'interview', 'phone screen', 'offer letter', 'job offer', 'hiring team', 'talent acquisition',
+  'bewerbung', 'ihr interesse an', 'dein interesse an', 'ihrem interesse an', 'deinem interesse an',
+  'eingangsbestätigung', 'vorstellungsgespräch', 'arbeitsvertrag', 'bewerbungsprozess'
+];
+
+const REJECTION_PHRASES = [
+  // English
+  'not moving forward', 'not be moving forward', "won't be moving forward", 'not to move forward',
+  'unable to move forward', 'cannot move forward', "can't move forward", 'not able to move forward',
+  'move forward with other', 'moving forward with other', 'proceed with other', 'proceeding with other',
+  'pursue other', 'pursuing other', 'go with other', 'go with another', 'other candidates', 'another candidate',
+  'other applicants', 'another applicant', 'more closely match', 'more closely aligned', 'better match',
+  'decided to pass', 'decided not to proceed', 'decided not to continue', 'decided against',
+  'not proceeding with your', 'not be proceeding', "won't be proceeding", 'unable to proceed with your',
+  'not been selected', 'were not selected', 'not to select', 'not selected for',
+  'filled the position', 'position has been filled', 'role has been filled', 'position has been closed',
+  'not the right fit', 'not a fit', 'do not see a match', "don't see a match",
+  'cannot offer you', 'unable to offer you', 'not able to offer you', "can't offer you",
+  'regret to inform', 'regrettably', 'will not be progressing', 'not be progressing', 'not progress your',
+  'unsuccessful', 'not be taking your application', 'not to pursue your',
+  // German
+  'absage', 'nicht berücksichtigen', 'nicht berücksichtigt', 'anderweitig entschieden', 'anderweitig besetzt',
+  'für einen anderen kandidaten', 'für eine andere kandidatin', 'für andere bewerber', 'für eine andere bewerb',
+  'für einen anderen bewerb', 'andere kandidat', 'nicht weiter berücksichtigen', 'nicht weiter zu verfolgen',
+  'nicht weiterverfolgen', 'nicht weiter verfolgen', 'nicht in die engere auswahl', 'keine positive rückmeldung',
+  'stelle bereits besetzt', 'stelle wurde besetzt', 'leider mitteilen', 'leider müssen wir', 'leider können wir',
+  'leider absagen', 'leider nicht', 'gegen ihre bewerbung', 'gegen deine bewerbung'
+];
+
+const OFFER_PHRASES = [
+  'pleased to offer', 'happy to offer', 'delighted to offer', 'offer letter', 'job offer',
+  'offer of employment', 'employment agreement', 'employment contract', 'welcome to the team',
+  'arbeitsvertrag', 'vertragsangebot', 'zusage'
+];
+
+// "interview" alone is not enough: confirmation emails say "if your profile matches we will invite
+// you to an interview". These phrases indicate an interview is actually being arranged.
+const INTERVIEW_PHRASES = [
+  'invite you to an interview', 'invite you for an interview', 'invitation to interview',
+  'interview invitation', 'schedule an interview', 'schedule a call', 'schedule time with',
+  'book a time', 'pick a time', 'select a time', 'your availability', 'phone screen',
+  'video interview', 'technical interview', 'next round', 'next step in the process',
+  'hackerrank', 'codility', 'technical assessment', 'take-home', 'coding challenge',
+  'einladung zum vorstellungsgespräch', 'einladung zum gespräch', 'laden sie herzlich',
+  'laden dich herzlich', 'kennenlerngespräch', 'terminvorschlag', 'terminvorschläge'
+];
+
+// Curly apostrophes ("won’t") would otherwise never match the phrase lists
+const normalizeQuotes = (text: string) => text.replace(/[\u2018\u2019\u201B\u2032]/g, "'");
+
+function looksLikeApplicationEmail(subject: string, body: string): boolean {
+  return includesAny(normalizeQuotes(`${subject} ${body}`).toLowerCase(), APPLICATION_PHRASES);
 }
 
 // Smart Regex Heuristics fallback parser
 function parseEmailHeuristics(subject: string, body: string, sender: string = ''): ParsedJobInfo {
-  if (isEmailBlacklisted(subject, body)) {
-    return {
-      company: 'Unknown Company',
-      position: 'Software Engineer',
-      salary: 'Not Specified',
-      status: 'Applied',
-      notes: 'Ignored account/security email.',
-      isJobRelated: false
-    };
+  if (isEmailBlacklisted(subject, body) || !looksLikeApplicationEmail(subject, body)) {
+    return NOT_JOB_RELATED;
   }
+  return extractJobDetails(subject, body, sender);
+}
 
+// Rule-based extraction of company, title and status. Used on its own when the AI is unavailable,
+// and to cross-check / fill in the AI result otherwise.
+function extractJobDetails(subject: string, body: string, sender: string = ''): ParsedJobInfo {
+  subject = normalizeQuotes(subject);
+  body = normalizeQuotes(body);
   const cleanSubject = subject.toLowerCase();
   const cleanBody = body.toLowerCase();
-  const cleanSender = sender.toLowerCase();
-  
-  // Job keywords to check relevance (English + German)
-  const jobKeywords = [
-    'application', 'apply', 'applying', 'interview', 'job offer', 'resume', 
-    'candidate', 'hiring', 'position of', 'role of', 'career opportunity',
-    'thank you for applying', 'recruitment', 'offer letter', 'rejection',
-    'bewerbung', 'beworben', 'eingegangen', 'unterlagen', 'vorstellungsgespräch',
-    'gespräch', 'kennenlernen', 'eingangsbestätigung', 'bestätigung', 'angebot',
-    'absage', 'arbeitsvertrag', 'zusage'
-  ];
-  const isJobRelated = jobKeywords.some(kw => cleanSubject.includes(kw) || cleanBody.includes(kw));
+  const text = `${cleanSubject} ${cleanBody}`;
 
   // 1. Detect Company
-  let company = 'Unknown Company';
+  const companyName = '([A-Z0-9][A-Za-z0-9\\&\\-]*(?: [A-Z][A-Za-z0-9\\&\\-]*){0,3})';
+  let company = UNKNOWN_COMPANY;
   const companyPatterns = [
-    /your application to ([a-zA-Z0-9\s\.\,\-\&]+)(?: has| was| received| confirmation)/i,
-    /applying to ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /application at ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /thank you for applying to ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /opportunity at ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /([a-zA-Z0-9\s\.\,\-\&]+) application update/i,
-    /career opportunities at ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /([a-zA-Z0-9\s\.\,\-\&]+) team/i,
-    /bewerbung bei ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /bewerbung als [a-zA-Z0-9\s\.\,\-\&]+ bei ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /vielen dank für ihre bewerbung bei ([a-zA-Z0-9\s\.\,\-\&]+)/i,
-    /eingangsbestätigung[:\-\s]+([a-zA-Z0-9\s\.\,\-\&]+)/i
+    new RegExp(`application (?:to|at|with) ${companyName}`),
+    new RegExp(`(?:applying|applied) (?:to|at|with) ${companyName}`),
+    new RegExp(`interest in (?:joining |working (?:at|for) )?${companyName}`),
+    new RegExp(`[Ii]nteresse an (?:der |die |das |einer Tätigkeit bei )?${companyName}`),
+    new RegExp(`opportunit(?:y|ies) at ${companyName}`),
+    new RegExp(`(?:role|position) at ${companyName}`),
+    new RegExp(`\\bat ${companyName}(?=[\\.,!:;\\)]|\\s+[a-z]|\\s*$)`),
+    new RegExp(`[Bb]ewerbung (?:bei|an) (?:der |die |das )?${companyName}`),
+    new RegExp(`bei (?:der |die |das )?${companyName} beworben`)
   ];
 
   for (const pattern of companyPatterns) {
     const match = subject.match(pattern) || body.match(pattern);
     if (match && match[1]) {
       const candidate = match[1].trim();
-      if (candidate.length > 1 && candidate.length < 50 && !candidate.includes('thank you') && !candidate.includes('confirm') && !candidate.includes('vielen dank')) {
+      if (candidate.length > 1 && candidate.length < 50) {
         company = candidate;
         break;
       }
@@ -80,140 +155,69 @@ function parseEmailHeuristics(subject: string, body: string, sender: string = ''
   }
 
   // Fallback company extraction from Sender header (display name or domain)
-  if (company === 'Unknown Company' && sender) {
-    // E.g. "Stripe Recruiting <recruiting@stripe.com>" -> "Stripe Recruiting" or "stripe"
+  if (company === UNKNOWN_COMPANY && sender) {
+    // E.g. "Stripe Recruiting <recruiting@stripe.com>" -> "Stripe"
     const nameMatch = sender.match(/^"?([^"<]+)"?\s*</);
     if (nameMatch && nameMatch[1]) {
-      const display = nameMatch[1].replace(/(careers|recruiting|jobs|team|hiring|no-reply|notifications)/gi, '').trim();
+      const display = nameMatch[1]
+        .replace(/\b(careers|career|recruiting|recruitment|jobs|team|hiring|talent acquisition|talent|hr|no-?reply|notifications?|via \w+|successfactors|greenhouse|workday|lever|ashby|smartrecruiters)\b/gi, '')
+        .replace(/[\-|@·]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
       if (display.length >= 2) company = display;
     }
-    if (company === 'Unknown Company') {
-      const domainMatch = sender.match(/@([a-zA-Z0-9\-\.]+)\./);
-      if (domainMatch && domainMatch[1] && !['gmail', 'yahoo', 'outlook', 'hotmail', 'greenhouse', 'lever', 'workday', 'ashbyhq'].includes(domainMatch[1])) {
+    if (company === UNKNOWN_COMPANY) {
+      const domainMatch = sender.match(/@(?:[a-zA-Z0-9\-]+\.)*?([a-zA-Z0-9\-]+)\.[a-zA-Z]{2,}>?$/);
+      const ignoredDomains = ['gmail', 'googlemail', 'yahoo', 'outlook', 'hotmail', 'gmx', 'web', 'greenhouse', 'greenhouse-mail', 'lever', 'hire', 'workday', 'myworkday', 'ashbyhq', 'smartrecruiters', 'workable', 'successfactors', 'icims', 'recruitee', 'teamtailor', 'join', 'jobvite', 'bamboohr', 'taleo', 'linkedin', 'indeed', 'stepstone', 'xing'];
+      if (domainMatch && domainMatch[1] && !ignoredDomains.includes(domainMatch[1].toLowerCase())) {
         company = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
       }
     }
   }
 
-  // 2. Detect Position
-  let position = 'Software Engineer';
+  // 2. Detect Position (each pattern needs explicit context so we don't grab random sentence fragments)
+  const title = '([A-Za-z0-9][A-Za-z0-9 \\.\\-\\&\\/\\#\\(\\)\\+]{1,58}?)';
+  let position = UNKNOWN_POSITION;
   const positionPatterns = [
-    /(?:role of|position of|job application for|for the position of|role:) ([a-zA-Z0-9\s\.\-\&\/\#]+)/i,
-    /([a-zA-Z0-9\s\.\-\&\/\#]+) (?:application|role|position|job)/i,
-    /bewerbung als ([a-zA-Z0-9\s\.\-\&\/\#]+)/i
+    new RegExp(`(?:role of|position of|for the position|for the role|job application for|application for(?: the)?)[:\\s]+(?:an? )?${title}(?: role| position| job)?(?: at | with | bei |[\\.,!\\n]|$)`, 'i'),
+    new RegExp(`(?:role|position|job title|stelle)\\s*:\\s*${title}(?:[\\.,!\\n]|$)`, 'i'),
+    new RegExp(`(?:application|applying|applied) (?:to|for) (?:the |our |an? )?${title} (?:role|position|opening|job)`, 'i'),
+    new RegExp(`(?:for|in) (?:the|our) ${title} (?:role|position|opening)`, 'i'),
+    new RegExp(`bewerbung (?:als|für die position|für die stelle|auf die stelle)(?: als)? ${title}(?: bei | an |[\\.,!\\n]|$)`, 'i'),
+    new RegExp(`:\\s*${title}\\s*$`, 'i') // e.g. "Your application to Google: Software Engineer (L3)"
   ];
-  
+
   for (const pattern of positionPatterns) {
     const match = subject.match(pattern) || body.match(pattern);
     if (match && match[1]) {
-      const candidate = match[1].trim();
-      if (candidate.length > 2 && candidate.length < 60) {
+      const candidate = match[1].replace(/^(the|a|an)\s+/i, '').replace(/\s+(at|bei|@|with)\s+.*$/i, '').trim();
+      const generic = /^(your|our|this|that|it|you|us|the|application|job|role|position)$/i.test(candidate);
+      if (candidate.length > 2 && candidate.length < 60 && !generic && candidate.toLowerCase() !== company.toLowerCase()) {
         position = candidate;
         break;
       }
     }
   }
 
-  if (company.toLowerCase() === position.toLowerCase()) {
-    company = 'Selected Company';
-  }
-
   // 3. Detect Status (English + German)
+  // Drop conditional sentences ("if your profile matches, we will invite you to an interview")
+  // so a plain confirmation isn't mistaken for an interview invitation.
+  const unconditionalText = text
+    .split(/(?<=[\.!?\n])\s+/)
+    .filter(sentence => !/\b(if|should|once|falls|sofern|wenn|sobald)\b/.test(sentence))
+    .join(' ');
   let status: ParsedJobInfo['status'] = 'Applied';
-  
-  const hasRejectionKeywords = 
-    cleanSubject.includes('rejection') || 
-    cleanSubject.includes('absage') || 
-    cleanSubject.includes('unfortunately') || 
-    cleanSubject.includes('leider') || 
-    cleanSubject.includes('not select') ||
-    cleanSubject.includes('unsuccessful') ||
-    cleanBody.includes('not moving forward') || 
-    cleanBody.includes('not be moving forward') || 
-    cleanBody.includes('unable to move forward') || 
-    cleanBody.includes('decided to pass') || 
-    cleanBody.includes('decided not to proceed') || 
-    cleanBody.includes('not proceeding') || 
-    cleanBody.includes('unable to proceed') || 
-    cleanBody.includes('not select') || 
-    cleanBody.includes('not to select') || 
-    cleanBody.includes('not selected') || 
-    cleanBody.includes('unsuccessful') || 
-    cleanBody.includes('unfortunately') || 
-    cleanBody.includes('leider') || 
-    cleanBody.includes('absage') || 
-    cleanBody.includes('nicht berücksichtigt') || 
-    cleanBody.includes('kein angebot') || 
-    cleanBody.includes('anderweitig entschieden') || 
-    cleanBody.includes('other candidates') || 
-    cleanBody.includes('another candidate') || 
-    cleanBody.includes('filled the position') || 
-    cleanBody.includes('position has been filled') || 
-    cleanBody.includes('thank you for your interest, but') || 
-    cleanBody.includes('wish you the best') || 
-    cleanBody.includes('wish you success') || 
-    cleanBody.includes('success in your job search') || 
-    cleanBody.includes('best of luck') ||
-    cleanBody.includes('not the right fit') ||
-    cleanBody.includes('not a match') ||
-    cleanBody.includes('cannot offer you') ||
-    cleanBody.includes('unable to offer') ||
-    cleanBody.includes('cannot move forward') ||
-    cleanBody.includes('unable to move forward') ||
-    cleanBody.includes('do not see a match') ||
-    cleanBody.includes('not proceeding with your application') ||
-    cleanBody.includes('decided to proceed with other') ||
-    cleanBody.includes('unable to proceed with your application');
-
-  const hasOfferKeywords = 
-    cleanSubject.includes('offer') || 
-    cleanSubject.includes('angebot') || 
-    cleanSubject.includes('zusage') || 
-    cleanSubject.includes('contract') || 
-    cleanSubject.includes('vertrag') || 
-    cleanBody.includes('pleased to offer') || 
-    cleanBody.includes('offer letter') || 
-    cleanBody.includes('zusage') || 
-    cleanBody.includes('angebot') || 
-    cleanBody.includes('arbeitsvertrag') || 
-    cleanBody.includes('employment agreement') || 
-    cleanBody.includes('welcome to the team') || 
-    cleanBody.includes('congratulations');
-
-  const hasInterviewKeywords = 
-    cleanSubject.includes('interview') || 
-    cleanSubject.includes('gespräch') || 
-    cleanSubject.includes('kennenlernen') || 
-    cleanSubject.includes('screening') || 
-    cleanSubject.includes('phone screen') || 
-    cleanBody.includes('schedule an interview') || 
-    cleanBody.includes('schedule a call') || 
-    cleanBody.includes('schedule a meeting') || 
-    cleanBody.includes('schedule time') || 
-    cleanBody.includes('interview') || 
-    cleanBody.includes('gespräch') || 
-    cleanBody.includes('kennenlernen') || 
-    cleanBody.includes('telefonat') || 
-    cleanBody.includes('vorstellungsgespräch') || 
-    cleanBody.includes('phone screen') || 
-    cleanBody.includes('video interview') || 
-    cleanBody.includes('hackerrank') || 
-    cleanBody.includes('codility') || 
-    cleanBody.includes('technical assessment') || 
-    cleanBody.includes('take-home assessment') || 
-    cleanBody.includes('coding challenge');
-
-  if (hasRejectionKeywords) {
+  if (includesAny(text, REJECTION_PHRASES) || /\b(rejection|absage)\b/.test(cleanSubject)) {
     status = 'Rejected';
-  } else if (hasOfferKeywords) {
+  } else if (includesAny(text, OFFER_PHRASES)) {
     status = 'Offer';
-  } else if (hasInterviewKeywords) {
+  } else if (includesAny(unconditionalText, INTERVIEW_PHRASES) || /\b(interview|vorstellungsgespräch)\b/.test(cleanSubject)) {
     status = 'Interviewing';
   }
 
   // 4. Notes & Salary
   let salary = 'Not Specified';
-  const salaryMatch = body.match(/(?:salary|compensation|package|offering)(?:\s+is)?(?:\s+of)?(?:\s+around)?\s*([\$€£]\d+[\d\s,]*k?)/i);
+  const salaryMatch = body.match(/(?:salary|compensation|package|gehalt)(?:\s+is)?(?:\s+of)?(?:\s+around)?\s*([\$€£]\s?\d+[\d\s,\.]*k?)/i);
   if (salaryMatch && salaryMatch[1]) {
     salary = salaryMatch[1].trim();
   }
@@ -226,22 +230,72 @@ function parseEmailHeuristics(subject: string, body: string, sender: string = ''
     salary,
     status,
     notes,
-    isJobRelated: isJobRelated
+    isJobRelated: true
   };
 }
+
+// Normalizes whatever the LLM returned into a safe ParsedJobInfo.
+// Small models sometimes return "false" as a string, omit fields, or invent statuses.
+function normalizeAIResult(raw: any, subject: string): ParsedJobInfo {
+  const isJobRelated = raw?.isJobRelated === true || raw?.isJobRelated === 'true';
+  if (!isJobRelated) {
+    return NOT_JOB_RELATED;
+  }
+
+  const str = (v: unknown, fallback: string) => (typeof v === 'string' && v.trim() ? v.trim() : fallback);
+
+  let company = str(raw.company, UNKNOWN_COMPANY);
+  if (/^(unknown|n\/a|none|null|careers?( team)?|jobs|recruiting|recruitment|hr|hiring team|no-?reply|sender)$/i.test(company)) {
+    company = UNKNOWN_COMPANY;
+  }
+
+  let position = str(raw.position, UNKNOWN_POSITION);
+  if (/^(unknown|n\/a|none|null|not specified|position|role|job)$/i.test(position)) {
+    position = UNKNOWN_POSITION;
+  }
+
+  // An email never means "Bookmarked" (that column is for jobs the user saved manually)
+  const allowedStatuses: ParsedJobInfo['status'][] = ['Applied', 'Interviewing', 'Offer', 'Rejected'];
+  const status = allowedStatuses.find(s => s.toLowerCase() === String(raw.status || '').trim().toLowerCase()) || 'Applied';
+
+  return {
+    company,
+    position,
+    salary: str(raw.salary, 'Not Specified'),
+    status,
+    notes: str(raw.notes, `Automatically synced from email with subject: "${subject}".`),
+    isJobRelated: true
+  };
+}
+
+// The small Llama model regularly (a) answers "Unknown" for company/title even when they're in the
+// email and (b) labels polite rejections ("thank you for your interest… we decided to move forward
+// with other candidates") as "Applied". The rule-based extractor is precise on both, so use it to
+// fill the gaps and to catch rejections the model missed.
+function combineWithRules(aiResult: ParsedJobInfo, subject: string, body: string, sender: string): ParsedJobInfo {
+  const rules = extractJobDetails(subject, body, sender);
+
+  if (!aiResult.isJobRelated) {
+    // Trust the AI's "not a job email" unless the rules see a clear application email with a status change
+    const clearStatusChange = rules.status === 'Rejected' || rules.status === 'Interviewing' || rules.status === 'Offer';
+    return clearStatusChange && looksLikeApplicationEmail(subject, body) ? rules : aiResult;
+  }
+
+  return {
+    ...aiResult,
+    company: aiResult.company === UNKNOWN_COMPANY ? rules.company : aiResult.company,
+    position: aiResult.position === UNKNOWN_POSITION ? rules.position : aiResult.position,
+    status: rules.status === 'Rejected' ? 'Rejected' : aiResult.status
+  };
+}
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // AI Groq Llama 3 API email parser
 export async function parseEmailWithAI(subject: string, body: string, sender: string = ''): Promise<ParsedJobInfo> {
   if (isEmailBlacklisted(subject, body)) {
     console.log(`Programmatically filtered out blacklist email: "${subject}"`);
-    return {
-      company: 'Unknown Company',
-      position: 'Software Engineer',
-      salary: 'Not Specified',
-      status: 'Applied',
-      notes: 'Ignored account/security email.',
-      isJobRelated: false
-    };
+    return NOT_JOB_RELATED;
   }
 
   const apiKey = process.env.GROQ_API_KEY;
@@ -255,27 +309,28 @@ export async function parseEmailWithAI(subject: string, body: string, sender: st
   // Truncate email body to max 4000 characters to prevent prompt pollution or context overload
   const truncatedBody = body.length > 4000 ? body.substring(0, 4000) + '... [truncated]' : body;
 
-  try {
-    const prompt = `You are an expert AI parser designed to scan emails in both English and German, detecting job application status updates. Analyze the email sender (From field), subject, and body carefully.
+  const prompt = `You are an expert AI parser designed to scan emails in both English and German, detecting updates about job applications that the RECIPIENT personally submitted. Analyze the email sender (From field), subject, and body carefully.
 
-First, determine if this email is directly related to a job application process (e.g. applying to a job, scheduling interviews, candidate follow-ups, rejections, or job offers). Set "isJobRelated" to true if it is.
+Step 1 — decide "isJobRelated".
+Set "isJobRelated" to true ONLY if the email is a message from a company, recruiter, or applicant tracking system (Greenhouse, Lever, Workday, Personio, SmartRecruiters, etc.) about a specific application of the recipient: application received confirmation, interview invitation/scheduling, assessment, offer, or rejection.
 
-CRITICAL: Set "isJobRelated" to false for:
-- Account creation/authorization notifications (e.g. "An authorized OAuth Application was added", GitHub security alerts, GitLab login notifications).
-- Password resets, email verifications, and multi-factor auth codes.
-- Marketing promotions, sales pitches, newsletters, or purchase receipts.
-Only set "isJobRelated" to true if the email is a genuine communication from a recruiter, hiring team, or automated jobs platform regarding an actual job application.
+Set "isJobRelated" to false for everything else, including:
+- Job alerts, job recommendations, "new jobs for you", "jobs matching your profile" digests (LinkedIn, Indeed, StepStone, XING, Glassdoor…) — these are NOT applications.
+- Newsletters, career-site marketing, webinars, event invitations, recruiter cold outreach about a role the recipient never applied to.
+- Shopping "offers", discounts, order confirmations, receipts, invoices, shipping updates, subscription notices.
+- Account creation, OAuth/security alerts, password resets, email verifications, 2FA codes.
+- Any other personal or business email. When in doubt, answer false.
 
-Extract the following information:
-- company: The official brand name of the company hiring (e.g. "Stripe", "Google", "BMW", "Siemens"). Be extremely precise. Extract from body, subject, OR the Sender field (e.g., if Sender is "Stripe Careers <recruiting@stripe.com>", company is "Stripe"). Avoid generic terms like "Careers Team", "Jobs", "Recruitment", "HR", "No-Reply", or "Sender". If you cannot extract a specific company name or brand domain, default to "Unknown Company".
-- position: The job title (e.g. "Senior Software Engineer", "Product Manager"). For German job titles, please translate them to their English equivalent (e.g. "Softwareentwickler" should be translated to "Software Engineer") for consistency. If not explicitly mentioned, default to "Software Engineer".
+Step 2 — if job related, extract:
+- company: The official brand name of the company hiring (e.g. "Stripe", "Google", "BMW", "Siemens"). Use body, subject, or the Sender field (e.g. "Stripe Careers <recruiting@stripe.com>" → "Stripe"). Never use the name of the ATS or job board (Greenhouse, Lever, Workday, LinkedIn, Indeed) as the company. Avoid generic terms like "Careers Team", "Recruitment", "HR", "No-Reply". If unclear, use "Unknown Company".
+- position: The exact job title applied for, as written in the email (e.g. "Senior Software Engineer", "Product Manager"). Translate German titles to English (e.g. "Softwareentwickler" → "Software Engineer"). Do NOT guess: if no title is mentioned, use "Unknown Position".
 - salary: Expected salary or rate if mentioned, otherwise "Not Specified".
-- status: Set this to exactly one of the following based on the context: 
-  * "Applied" (for standard submission confirmations, application receipts, thank-you-for-applying / "Vielen Dank für Ihre Bewerbung" emails)
-  * "Interviewing" (if the email talks about next steps, scheduling calls, phone screens, technical tests, or virtual chats / "Vorstellungsgespräch" / "Kennenlernen")
-  * "Offer" (if an official offer letter, package details, or draft employment contract / "Arbeitsvertrag" / "Zusage" is sent)
-  * "Rejected" (if they decline, pass, send a rejection, state they are not moving forward with your candidacy, or write that they cannot offer you the role / "Absage" / "Leider nicht berücksichtigt" / "Unfortunately")
-- notes: A concise 1-2 sentence professional summary of what this email says and if there are immediate steps required. If the email is in German, write the summary notes in English.
+- status: exactly one of:
+  * "Applied" — confirmation that the application was received / is being reviewed ("Vielen Dank für Ihre Bewerbung"). This includes emails that say they WILL contact you for an interview IF your profile matches — that is still "Applied".
+  * "Interviewing" — the company is actually inviting you to or scheduling an interview, call, phone screen, assessment, or coding test ("Einladung zum Vorstellungsgespräch").
+  * "Offer" — an official job offer, offer letter, or employment contract ("Arbeitsvertrag", "Zusage").
+  * "Rejected" — they decline, will not move forward, chose another candidate ("Absage", "leider nicht berücksichtigen"). Polite phrases like "we wish you the best" inside a normal confirmation do NOT make it a rejection.
+- notes: A concise 1-2 sentence professional summary in English of what this email says and any immediate next steps.
 
 Email Sender (From): ${sender || 'Unknown Sender'}
 Email Subject: ${subject}
@@ -292,45 +347,48 @@ You MUST return only a valid JSON object matching this schema:
   "notes": "string"
 }`;
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
+  const requestBody = JSON.stringify({
+    model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+    messages: [
+      {
+        role: 'system',
+        content: 'You are an email parsing agent that strictly outputs JSON.'
       },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an email parsing agent that strictly outputs JSON.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        response_format: { type: 'json_object' },
-        temperature: 0.1 // Keep temperature low for deterministic parsing
-      })
-    });
+      {
+        role: 'user',
+        content: prompt
+      }
+    ],
+    response_format: { type: 'json_object' },
+    temperature: 0 // Deterministic parsing: the same email must always land in the same column
+  });
 
-    if (!response.ok) {
-      const errorDetails = await response.text();
-      throw new Error(`Groq API returned status ${response.status}: ${errorDetails}`);
+  try {
+    let response: Response | null = null;
+    // Retry on rate limiting instead of silently switching to the (less accurate) heuristic parser
+    for (let attempt = 0; attempt < 3; attempt++) {
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: requestBody
+      });
+      if (response.status !== 429) break;
+      const retryAfter = Number(response.headers.get('retry-after'));
+      await sleep(Math.min(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 2000 * (attempt + 1), 10000));
+    }
+
+    if (!response || !response.ok) {
+      const errorDetails = response ? await response.text() : 'no response';
+      throw new Error(`Groq API returned status ${response?.status}: ${errorDetails}`);
     }
 
     const data = await response.json();
     const content = data.choices[0].message.content.trim();
-    const parsedJson = JSON.parse(content) as ParsedJobInfo;
-    
-    // Safety check on status
-    const allowedStatuses: ParsedJobInfo['status'][] = ['Bookmarked', 'Applied', 'Interviewing', 'Offer', 'Rejected'];
-    if (!allowedStatuses.includes(parsedJson.status)) {
-      parsedJson.status = 'Applied';
-    }
-    
-    return parsedJson;
+    const aiResult = normalizeAIResult(JSON.parse(content), subject);
+    return combineWithRules(aiResult, subject, body, sender);
   } catch (error) {
     console.error('Groq AI email parsing failed, falling back to heuristics:', error);
     return parseEmailHeuristics(subject, body, sender);
