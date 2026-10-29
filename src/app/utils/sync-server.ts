@@ -1,5 +1,5 @@
 import { getUserById, updateUser, createJob, getUserJobs, updateJob, JobApplication } from './db-server';
-import { parseEmailWithAI } from './ai-parser';
+import { parseEmailWithAI, UNKNOWN_COMPANY, UNKNOWN_POSITION } from './ai-parser';
 
 // Helper to request a new access token using Google Refresh Token
 export async function refreshGoogleAccessToken(userId: string, refreshToken: string): Promise<string> {
@@ -136,6 +136,11 @@ export function normalizeCompanyName(name: string): string {
   return normalized || name.toLowerCase().trim();
 }
 
+function isUnknownCompany(name: string): boolean {
+  const n = name.toLowerCase().trim();
+  return !n || n === UNKNOWN_COMPANY.toLowerCase() || n === 'selected company';
+}
+
 export async function upsertGmailJob(
   userId: string,
   parsedInfo: {
@@ -150,14 +155,19 @@ export async function upsertGmailJob(
   sender: string,
   activeJobs: JobApplication[],
   emailSubject?: string,
-  emailBody?: string
+  emailBody?: string,
+  emailDate?: string
  ): Promise<JobApplication> {
   // Check if job for same company AND similar position already exists.
   // Rejected jobs ARE included in this check — if the same company + same position
   // appears again, it is truly a duplicate and should not be re-added.
   // If the position name is different, isSimilarPosition will return false and
   // a brand-new entry will be created (even for the same company).
-  const existingJob = activeJobs.find(j => {
+  // A job with no recognizable company is never merged into another one: matching on
+  // "Unknown Company" glued unrelated emails together and moved cards between columns.
+  const parsedCompanyKnown = !isUnknownCompany(parsedInfo.company);
+  const existingJob = !parsedCompanyKnown ? undefined : activeJobs.find(j => {
+    if (isUnknownCompany(j.company)) return false;
     const dbCompany = j.company.toLowerCase().trim();
     const parsedCompany = parsedInfo.company.toLowerCase().trim();
     
@@ -175,6 +185,10 @@ export async function upsertGmailJob(
     
     if (!companyMatches) return false;
     
+    // Follow-up emails (interview invites, rejections) often omit the job title:
+    // same company + unspecified title belongs to the existing application.
+    if (j.position === UNKNOWN_POSITION || parsedInfo.position === UNKNOWN_POSITION) return true;
+
     // If the company matches, verify the position is also similar
     return isSimilarPosition(j.position, parsedInfo.position);
   });
@@ -241,7 +255,7 @@ export async function upsertGmailJob(
       status: parsedInfo.status,
       url: '',
       notes: parsedInfo.notes,
-      dateApplied: new Date().toISOString().split('T')[0],
+      dateApplied: (emailDate || new Date().toISOString()).split('T')[0],
       source: 'gmail',
       gmailMessageId: messageId,
       emailSender: sender,
@@ -259,7 +273,10 @@ export async function syncUserGmail(userId: string): Promise<number> {
   }
 
   let accessToken = user.googleAccessToken;
-  const query = encodeURIComponent('subject:(application OR applied OR applying OR interview OR "thank you" OR "thanks for" OR "received your" OR confirm OR confirmation OR candidate OR update OR schedule OR offer OR bewerbung OR beworben OR eingegangen OR vorstellungsgespräch OR gespräch OR kennenlernen OR eingangsbestätigung OR bestätigung OR angebot OR absage)');
+  // Generic subject words ("thank you", "update", "confirm", "offer", "bestätigung", "angebot")
+  // pulled in shop receipts and newsletters, so only application-specific terms are searched,
+  // and the Promotions / Social tabs (where job-alert digests land) are skipped.
+  const query = encodeURIComponent('subject:(application OR applied OR applying OR interview OR candidate OR candidacy OR "job offer" OR "offer letter" OR "your application" OR bewerbung OR beworben OR vorstellungsgespräch OR kennenlernen OR eingangsbestätigung OR absage) -category:promotions -category:social');
 
   // 1. Fetch recent message headers from Gmail API
   let listResponse = await fetch(
@@ -298,20 +315,17 @@ export async function syncUserGmail(userId: string): Promise<number> {
   }
 
   const listData = await listResponse.json();
-  const messages = listData.messages || [];
+  // Gmail returns newest first; process oldest first so a job's history (Applied → Interviewing → …)
+  // is built in the order the emails actually arrived.
+  const messages = (listData.messages || []).reverse();
   let newJobsAddedCount = 0;
 
   // Query active jobs from DB to prevent duplicate syncs.
-  // IMPORTANT: We deliberately exclude message IDs from Rejected jobs.
-  // Why: a previous sync may have merged a *new* application email's ID into
-  // an old rejected job entry (same company, matched position). That would
-  // permanently skip the email on all future syncs. By excluding Rejected job
-  // IDs here, those emails are re-evaluated — if the position is different, a
-  // brand-new job entry is correctly created.
+  // Every email already attached to a job is skipped. (Re-evaluating emails of Rejected jobs on
+  // each sync re-ran the parser on old rejections, which could then match and flip other cards.)
   const activeJobs = await getUserJobs(userId);
   const existingMessageIds = new Set<string>();
   for (const j of activeJobs) {
-    if (j.status === 'Rejected') continue; // let rejected-job emails be re-evaluated
     if (j.gmailMessageId) {
       j.gmailMessageId.split(',').forEach(id => {
         const trimmed = id.trim();
@@ -368,7 +382,8 @@ export async function syncUserGmail(userId: string): Promise<number> {
     }
 
     // 4. Create or Update Job in database
-    const updatedJob = await upsertGmailJob(userId, parsedInfo, msg.id, sender, activeJobs, subject, bodyText);
+    const emailDate = msgData.internalDate ? new Date(Number(msgData.internalDate)).toISOString() : undefined;
+    const updatedJob = await upsertGmailJob(userId, parsedInfo, msg.id, sender, activeJobs, subject, bodyText, emailDate);
 
     // Update local activeJobs array and existingMessageIds set
     const jobIndex = activeJobs.findIndex(j => j.id === updatedJob.id);
