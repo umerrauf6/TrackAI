@@ -59,11 +59,17 @@ function stripHtml(html: string): string {
   return text.trim();
 }
 
+const decode = (data: string) => Buffer.from(data, 'base64url').toString('utf8');
+
 function extractBodyText(payload: any): string {
+  return stripQuotedReply(extractRawBodyText(payload));
+}
+
+function extractRawBodyText(payload: any): string {
   if (!payload) return '';
   
   if (payload.body && payload.body.data) {
-    const raw = Buffer.from(payload.body.data, 'base64url').toString('utf8');
+    const raw = decode(payload.body.data);
     if (payload.mimeType === 'text/html') {
       return stripHtml(raw);
     }
@@ -72,23 +78,47 @@ function extractBodyText(payload: any): string {
   
   if (payload.parts && Array.isArray(payload.parts)) {
     const plainPart = findPartByMimeType(payload.parts, 'text/plain');
-    if (plainPart && plainPart.body && plainPart.body.data) {
-      return Buffer.from(plainPart.body.data, 'base64url').toString('utf8');
-    }
-    
+    const plainText = plainPart?.body?.data ? decode(plainPart.body.data).trim() : '';
+
     const htmlPart = findPartByMimeType(payload.parts, 'text/html');
-    if (htmlPart && htmlPart.body && htmlPart.body.data) {
-      const rawHtml = Buffer.from(htmlPart.body.data, 'base64url').toString('utf8');
-      return stripHtml(rawHtml);
-    }
+    const htmlText = htmlPart?.body?.data ? stripHtml(decode(htmlPart.body.data)) : '';
+
+    // Many ATS emails (Workday, SuccessFactors…) ship a stub plain-text part like
+    // "View this email in your browser" while the real content is only in the HTML part.
+    if (plainText && (plainText.length >= 200 || plainText.length >= htmlText.length)) return plainText;
+    if (htmlText) return htmlText;
+    if (plainText) return plainText;
     
     for (const part of payload.parts) {
-      const text = extractBodyText(part);
+      const text = extractRawBodyText(part);
       if (text) return text;
     }
   }
   
   return '';
+}
+
+// Drop quoted earlier messages ("On … wrote:", "> …"), otherwise a reply thread that contains an old
+// interview invite or confirmation gets parsed together with the newest message.
+function stripQuotedReply(text: string): string {
+  const markers = [
+    /\n\s*On .{5,200}wrote:/i,
+    /\n\s*Am .{5,200}schrieb .{0,100}:/i,
+    /\n\s*-{2,}\s*(Original Message|Ursprüngliche Nachricht|Forwarded message|Weitergeleitete Nachricht)/i,
+    /\n\s*From: .+\n\s*(Sent|Date): /i,
+    /\n\s*Von: .+\n\s*(Gesendet|Datum): /i
+  ];
+  let cut = text.length;
+  for (const marker of markers) {
+    const m = text.match(marker);
+    if (m && m.index !== undefined && m.index > 50) cut = Math.min(cut, m.index);
+  }
+  return text
+    .slice(0, cut)
+    .split('\n')
+    .filter(line => !line.trimStart().startsWith('>'))
+    .join('\n')
+    .trim();
 }
 
 export function cleanPosition(pos: string): string {
