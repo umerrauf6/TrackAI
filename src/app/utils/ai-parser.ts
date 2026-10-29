@@ -19,6 +19,10 @@ const NOT_JOB_RELATED: ParsedJobInfo = {
   isJobRelated: false
 };
 
+// "Data Analyst (m/w/d)" -> "Data Analyst"
+const cleanTitle = (title: string) =>
+  title.replace(/\s*[\(\[]\s*(m|w|f|d|x|div|all genders?|alle geschlechter|gn\*?)(\s*[\/\|,]\s*(m|w|f|d|x|div))*\s*[\)\]]/gi, '').replace(/\s+/g, ' ').trim();
+
 const includesAny = (text: string, terms: string[]) => terms.some(t => text.includes(t));
 
 // Programmatic filter for non-job, account/security confirmation emails
@@ -190,7 +194,7 @@ function extractJobDetails(subject: string, body: string, sender: string = ''): 
   for (const pattern of positionPatterns) {
     const match = subject.match(pattern) || body.match(pattern);
     if (match && match[1]) {
-      const candidate = match[1].replace(/^(the|a|an)\s+/i, '').replace(/\s+(at|bei|@|with)\s+.*$/i, '').trim();
+      const candidate = cleanTitle(match[1].replace(/^(the|a|an)\s+/i, '').replace(/\s+(at|bei|@|with)\s+.*$/i, ''));
       const generic = /^(your|our|this|that|it|you|us|the|application|job|role|position)$/i.test(candidate);
       if (candidate.length > 2 && candidate.length < 60 && !generic && candidate.toLowerCase() !== company.toLowerCase()) {
         position = candidate;
@@ -249,7 +253,7 @@ function normalizeAIResult(raw: any, subject: string): ParsedJobInfo {
     company = UNKNOWN_COMPANY;
   }
 
-  let position = str(raw.position, UNKNOWN_POSITION);
+  let position = cleanTitle(str(raw.position, UNKNOWN_POSITION)) || UNKNOWN_POSITION;
   if (/^(unknown|n\/a|none|null|not specified|position|role|job)$/i.test(position)) {
     position = UNKNOWN_POSITION;
   }
@@ -268,6 +272,9 @@ function normalizeAIResult(raw: any, subject: string): ParsedJobInfo {
   };
 }
 
+// Names of applicant-tracking systems and job boards: these send the emails but are never the employer
+const ATS_OR_BOARD = /^(greenhouse|lever|workday|myworkday|ashby|ashbyhq|smartrecruiters|personio recruiting|workable|successfactors|sap successfactors|icims|recruitee|teamtailor|join|jobvite|bamboohr|taleo|linkedin|indeed|stepstone|xing|glassdoor|talent acquisition( team)?|recruiting team|careers team|hr team)$/i;
+
 // The small Llama model regularly (a) answers "Unknown" for company/title even when they're in the
 // email and (b) labels polite rejections ("thank you for your interest… we decided to move forward
 // with other candidates") as "Applied". The rule-based extractor is precise on both, so use it to
@@ -283,10 +290,18 @@ function combineWithRules(aiResult: ParsedJobInfo, subject: string, body: string
 
   return {
     ...aiResult,
-    company: aiResult.company === UNKNOWN_COMPANY ? rules.company : aiResult.company,
+    company: aiResult.company === UNKNOWN_COMPANY || ATS_OR_BOARD.test(aiResult.company) ? rules.company : aiResult.company,
     position: aiResult.position === UNKNOWN_POSITION ? rules.position : aiResult.position,
     status: rules.status === 'Rejected' ? 'Rejected' : aiResult.status
   };
+}
+
+const DEFAULT_GROQ_MODELS = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b'];
+
+// Make it visible on the card when the AI didn't run, instead of failing silently
+function withFallbackNote(result: ParsedJobInfo, reason: string): ParsedJobInfo {
+  if (!result.isJobRelated) return result;
+  return { ...result, notes: `${result.notes} [AI not used: ${reason}]` };
 }
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -302,8 +317,8 @@ export async function parseEmailWithAI(subject: string, body: string, sender: st
 
   // Fallback to heuristics if Groq API key is not configured
   if (!apiKey || apiKey === 'YOUR_GROQ_API_KEY' || apiKey.trim() === '') {
-    console.log('Groq API key not found. Using local regex/heuristics parser.');
-    return parseEmailHeuristics(subject, body, sender);
+    console.warn('GROQ_API_KEY is not set. Using local rule-based parser only.');
+    return withFallbackNote(parseEmailHeuristics(subject, body, sender), 'GROQ_API_KEY is not set');
   }
 
   // Truncate email body to max 4000 characters to prevent prompt pollution or context overload
@@ -323,7 +338,7 @@ Set "isJobRelated" to false for everything else, including:
 
 Step 2 — if job related, extract:
 - company: The official brand name of the company hiring (e.g. "Stripe", "Google", "BMW", "Siemens"). Use body, subject, or the Sender field (e.g. "Stripe Careers <recruiting@stripe.com>" → "Stripe"). Never use the name of the ATS or job board (Greenhouse, Lever, Workday, LinkedIn, Indeed) as the company. Avoid generic terms like "Careers Team", "Recruitment", "HR", "No-Reply". If unclear, use "Unknown Company".
-- position: The exact job title applied for, as written in the email (e.g. "Senior Software Engineer", "Product Manager"). Translate German titles to English (e.g. "Softwareentwickler" → "Software Engineer"). Do NOT guess: if no title is mentioned, use "Unknown Position".
+- position: The exact job title applied for. Look in the SUBJECT first (e.g. "Your application: Senior Data Analyst (m/w/d)"), then in the body (e.g. "for the position of …", "Bewerbung als …"). Copy it exactly as written, without translating; drop gender suffixes like "(m/w/d)", "(f/m/x)", "(all genders)". Do NOT guess: if no title is mentioned anywhere, use "Unknown Position".
 - salary: Expected salary or rate if mentioned, otherwise "Not Specified".
 - status: exactly one of:
   * "Applied" — confirmation that the application was received / is being reviewed ("Vielen Dank für Ihre Bewerbung"). This includes emails that say they WILL contact you for an interview IF your profile matches — that is still "Applied".
@@ -347,50 +362,65 @@ You MUST return only a valid JSON object matching this schema:
   "notes": "string"
 }`;
 
-  const requestBody = JSON.stringify({
-    model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
-    messages: [
-      {
-        role: 'system',
-        content: 'You are an email parsing agent that strictly outputs JSON.'
-      },
-      {
-        role: 'user',
-        content: prompt
-      }
-    ],
-    response_format: { type: 'json_object' },
-    temperature: 0 // Deterministic parsing: the same email must always land in the same column
-  });
+  // llama-3.1-8b-instant / llama-3.3-70b-versatile were shut down by Groq on 2026-08-16; every request
+  // to them fails, which silently sent ALL emails to the weaker rule-based parser. Try the configured
+  // model first, then current Groq models, so one retired model can't break parsing again.
+  const models = Array.from(new Set([process.env.GROQ_MODEL, ...DEFAULT_GROQ_MODELS].filter(Boolean) as string[]));
+  let lastError = '';
 
-  try {
-    let response: Response | null = null;
-    // Retry on rate limiting instead of silently switching to the (less accurate) heuristic parser
-    for (let attempt = 0; attempt < 3; attempt++) {
-      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+  for (const model of models) {
+    const requestBody = JSON.stringify({
+      model,
+      messages: [
+        {
+          role: 'system',
+          content: 'You are an email parsing agent that strictly outputs JSON.'
         },
-        body: requestBody
-      });
-      if (response.status !== 429) break;
-      const retryAfter = Number(response.headers.get('retry-after'));
-      await sleep(Math.min(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 2000 * (attempt + 1), 10000));
-    }
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      response_format: { type: 'json_object' },
+      temperature: 0, // Deterministic parsing: the same email must always land in the same column
+      ...(model.startsWith('openai/gpt-oss') ? { reasoning_effort: 'low' } : {})
+    });
 
-    if (!response || !response.ok) {
-      const errorDetails = response ? await response.text() : 'no response';
-      throw new Error(`Groq API returned status ${response?.status}: ${errorDetails}`);
-    }
+    try {
+      let response: Response | null = null;
+      // Retry on rate limiting instead of silently switching to the (less accurate) heuristic parser
+      for (let attempt = 0; attempt < 3; attempt++) {
+        response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: requestBody
+        });
+        if (response.status !== 429) break;
+        const retryAfter = Number(response.headers.get('retry-after'));
+        await sleep(Math.min(Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 2000 * (attempt + 1), 10000));
+      }
 
-    const data = await response.json();
-    const content = data.choices[0].message.content.trim();
-    const aiResult = normalizeAIResult(JSON.parse(content), subject);
-    return combineWithRules(aiResult, subject, body, sender);
-  } catch (error) {
-    console.error('Groq AI email parsing failed, falling back to heuristics:', error);
-    return parseEmailHeuristics(subject, body, sender);
+      if (!response || !response.ok) {
+        const errorDetails = response ? await response.text() : 'no response';
+        lastError = `${model}: HTTP ${response?.status} ${errorDetails.slice(0, 200)}`;
+        console.error(`Groq request failed (${lastError}). Trying next model.`);
+        if (response?.status === 401) break; // bad API key: other models won't help
+        continue;
+      }
+
+      const data = await response.json();
+      const content = (data.choices?.[0]?.message?.content || '').trim();
+      const aiResult = normalizeAIResult(JSON.parse(content), subject);
+      return combineWithRules(aiResult, subject, body, sender);
+    } catch (error: any) {
+      lastError = `${model}: ${error?.message || error}`;
+      console.error(`Groq AI email parsing failed (${lastError}). Trying next model.`);
+    }
   }
+
+  console.error('All Groq models failed, falling back to rule-based parser:', lastError);
+  return withFallbackNote(parseEmailHeuristics(subject, body, sender), lastError.includes('HTTP 401') ? 'GROQ_API_KEY is invalid' : `AI request failed — ${lastError}`);
 }
