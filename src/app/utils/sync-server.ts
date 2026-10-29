@@ -273,14 +273,16 @@ export async function syncUserGmail(userId: string): Promise<number> {
   }
 
   let accessToken = user.googleAccessToken;
-  // Generic subject words ("thank you", "update", "confirm", "offer", "bestätigung", "angebot")
-  // pulled in shop receipts and newsletters, so only application-specific terms are searched,
-  // and the Promotions / Social tabs (where job-alert digests land) are skipped.
-  const query = encodeURIComponent('subject:(application OR applied OR applying OR interview OR candidate OR candidacy OR "job offer" OR "offer letter" OR "your application" OR bewerbung OR beworben OR vorstellungsgespräch OR kennenlernen OR eingangsbestätigung OR absage) -category:promotions -category:social');
+  // Search the whole email (not only the subject): rejections often have subjects like
+  // "Thank you for your interest in X" that contain none of the keywords.
+  // Generic words ("update", "confirm", "offer", "angebot") are left out because they pulled in
+  // shop receipts and newsletters, and the Promotions / Social tabs (job-alert digests) are skipped.
+  const query = encodeURIComponent('("your application" OR "thank you for applying" OR "thanks for applying" OR "thank you for your interest" OR "thanks for your interest" OR "your candidacy" OR interview OR bewerbung OR beworben OR vorstellungsgespräch OR "ihr interesse" OR "dein interesse" OR absage) -category:promotions -category:social newer_than:180d');
+  const MAX_RESULTS = 25;
 
   // 1. Fetch recent message headers from Gmail API
   let listResponse = await fetch(
-    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=10`,
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=${MAX_RESULTS}`,
     {
       headers: { Authorization: `Bearer ${accessToken}` },
     }
@@ -294,7 +296,7 @@ export async function syncUserGmail(userId: string): Promise<number> {
       
       // Retry fetch with the fresh access token
       listResponse = await fetch(
-        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=10`,
+        `https://gmail.googleapis.com/gmail/v1/users/me/messages?q=${query}&maxResults=${MAX_RESULTS}`,
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }

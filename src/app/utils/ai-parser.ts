@@ -55,23 +55,35 @@ function isEmailBlacklisted(subject: string, body: string): boolean {
 const APPLICATION_PHRASES = [
   'your application', 'thank you for applying', 'thanks for applying', 'thank you for your application',
   'application received', 'received your application', 'application for', 'application to',
-  'application status', 'application update', 'your candidacy', 'your candidature', 'your interest in the',
+  'application status', 'application update', 'your candidacy', 'your candidature', 'your interest in',
+  'thank you for your interest', 'thanks for your interest', 'thank you for considering',
   'interview', 'phone screen', 'offer letter', 'job offer', 'hiring team', 'talent acquisition',
-  'ihre bewerbung', 'deine bewerbung', 'bewerbung als', 'bewerbung bei', 'bewerbung für',
+  'bewerbung', 'ihr interesse an', 'dein interesse an', 'ihrem interesse an', 'deinem interesse an',
   'eingangsbestätigung', 'vorstellungsgespräch', 'arbeitsvertrag', 'bewerbungsprozess'
 ];
 
 const REJECTION_PHRASES = [
-  'not moving forward', 'not be moving forward', 'unable to move forward', 'cannot move forward',
-  'decided to pass', 'decided not to proceed', 'not proceeding with your application',
-  'unable to proceed with your application', 'decided to proceed with other', 'decided to move forward with other',
-  'not been selected', 'were not selected', 'not to select', 'other candidates', 'another candidate',
-  'filled the position', 'position has been filled', 'not the right fit', 'do not see a match',
-  'cannot offer you', 'unable to offer you', 'regret to inform', 'will not be progressing',
-  'not be progressing', 'unsuccessful',
-  'absage', 'nicht berücksichtigen', 'nicht berücksichtigt', 'anderweitig entschieden',
-  'für einen anderen kandidaten', 'für eine andere kandidatin', 'nicht weiter berücksichtigen',
-  'leider mitteilen', 'leider absagen', 'leider nicht'
+  // English
+  'not moving forward', 'not be moving forward', "won't be moving forward", 'not to move forward',
+  'unable to move forward', 'cannot move forward', "can't move forward", 'not able to move forward',
+  'move forward with other', 'moving forward with other', 'proceed with other', 'proceeding with other',
+  'pursue other', 'pursuing other', 'go with other', 'go with another', 'other candidates', 'another candidate',
+  'other applicants', 'another applicant', 'more closely match', 'more closely aligned', 'better match',
+  'decided to pass', 'decided not to proceed', 'decided not to continue', 'decided against',
+  'not proceeding with your', 'not be proceeding', "won't be proceeding", 'unable to proceed with your',
+  'not been selected', 'were not selected', 'not to select', 'not selected for',
+  'filled the position', 'position has been filled', 'role has been filled', 'position has been closed',
+  'not the right fit', 'not a fit', 'do not see a match', "don't see a match",
+  'cannot offer you', 'unable to offer you', 'not able to offer you', "can't offer you",
+  'regret to inform', 'regrettably', 'will not be progressing', 'not be progressing', 'not progress your',
+  'unsuccessful', 'not be taking your application', 'not to pursue your',
+  // German
+  'absage', 'nicht berücksichtigen', 'nicht berücksichtigt', 'anderweitig entschieden', 'anderweitig besetzt',
+  'für einen anderen kandidaten', 'für eine andere kandidatin', 'für andere bewerber', 'für eine andere bewerb',
+  'für einen anderen bewerb', 'andere kandidat', 'nicht weiter berücksichtigen', 'nicht weiter zu verfolgen',
+  'nicht weiterverfolgen', 'nicht weiter verfolgen', 'nicht in die engere auswahl', 'keine positive rückmeldung',
+  'stelle bereits besetzt', 'stelle wurde besetzt', 'leider mitteilen', 'leider müssen wir', 'leider können wir',
+  'leider absagen', 'leider nicht', 'gegen ihre bewerbung', 'gegen deine bewerbung'
 ];
 
 const OFFER_PHRASES = [
@@ -92,31 +104,41 @@ const INTERVIEW_PHRASES = [
   'laden dich herzlich', 'kennenlerngespräch', 'terminvorschlag', 'terminvorschläge'
 ];
 
+// Curly apostrophes ("won’t") would otherwise never match the phrase lists
+const normalizeQuotes = (text: string) => text.replace(/[\u2018\u2019\u201B\u2032]/g, "'");
+
+function looksLikeApplicationEmail(subject: string, body: string): boolean {
+  return includesAny(normalizeQuotes(`${subject} ${body}`).toLowerCase(), APPLICATION_PHRASES);
+}
+
 // Smart Regex Heuristics fallback parser
 function parseEmailHeuristics(subject: string, body: string, sender: string = ''): ParsedJobInfo {
-  if (isEmailBlacklisted(subject, body)) {
+  if (isEmailBlacklisted(subject, body) || !looksLikeApplicationEmail(subject, body)) {
     return NOT_JOB_RELATED;
   }
+  return extractJobDetails(subject, body, sender);
+}
 
+// Rule-based extraction of company, title and status. Used on its own when the AI is unavailable,
+// and to cross-check / fill in the AI result otherwise.
+function extractJobDetails(subject: string, body: string, sender: string = ''): ParsedJobInfo {
+  subject = normalizeQuotes(subject);
+  body = normalizeQuotes(body);
   const cleanSubject = subject.toLowerCase();
   const cleanBody = body.toLowerCase();
   const text = `${cleanSubject} ${cleanBody}`;
 
-  const isJobRelated = includesAny(text, APPLICATION_PHRASES) || /\bbewerbung\b/.test(cleanSubject);
-  if (!isJobRelated) {
-    return NOT_JOB_RELATED;
-  }
-
   // 1. Detect Company
-  const companyName = '([A-Z][A-Za-z0-9\\.\\&\\-]*(?: [A-Z][A-Za-z0-9\\.\\&\\-]*){0,3})';
+  const companyName = '([A-Z0-9][A-Za-z0-9\\&\\-]*(?: [A-Z][A-Za-z0-9\\&\\-]*){0,3})';
   let company = UNKNOWN_COMPANY;
   const companyPatterns = [
     new RegExp(`application (?:to|at|with) ${companyName}`),
     new RegExp(`(?:applying|applied) (?:to|at|with) ${companyName}`),
-    new RegExp(`interest in (?:joining |working at )?${companyName}`),
+    new RegExp(`interest in (?:joining |working (?:at|for) )?${companyName}`),
+    new RegExp(`[Ii]nteresse an (?:der |die |das |einer Tätigkeit bei )?${companyName}`),
     new RegExp(`opportunit(?:y|ies) at ${companyName}`),
     new RegExp(`(?:role|position) at ${companyName}`),
-    new RegExp(`\\bat ${companyName}(?:[\\.,!:]|$)`),
+    new RegExp(`\\bat ${companyName}(?=[\\.,!:;\\)]|\\s+[a-z]|\\s*$)`),
     new RegExp(`[Bb]ewerbung (?:bei|an) (?:der |die |das )?${companyName}`),
     new RegExp(`bei (?:der |die |das )?${companyName} beworben`)
   ];
@@ -138,7 +160,7 @@ function parseEmailHeuristics(subject: string, body: string, sender: string = ''
     const nameMatch = sender.match(/^"?([^"<]+)"?\s*</);
     if (nameMatch && nameMatch[1]) {
       const display = nameMatch[1]
-        .replace(/\b(careers|career|recruiting|recruitment|jobs|team|hiring|talent|hr|no-?reply|notifications?|via \w+)\b/gi, '')
+        .replace(/\b(careers|career|recruiting|recruitment|jobs|team|hiring|talent acquisition|talent|hr|no-?reply|notifications?|via \w+|successfactors|greenhouse|workday|lever|ashby|smartrecruiters)\b/gi, '')
         .replace(/[\-|@·]+/g, ' ')
         .replace(/\s+/g, ' ')
         .trim();
@@ -146,7 +168,7 @@ function parseEmailHeuristics(subject: string, body: string, sender: string = ''
     }
     if (company === UNKNOWN_COMPANY) {
       const domainMatch = sender.match(/@(?:[a-zA-Z0-9\-]+\.)*?([a-zA-Z0-9\-]+)\.[a-zA-Z]{2,}>?$/);
-      const ignoredDomains = ['gmail', 'googlemail', 'yahoo', 'outlook', 'hotmail', 'greenhouse', 'lever', 'workday', 'myworkday', 'ashbyhq', 'smartrecruiters', 'personio', 'workable', 'successfactors', 'icims', 'linkedin', 'indeed', 'stepstone', 'xing'];
+      const ignoredDomains = ['gmail', 'googlemail', 'yahoo', 'outlook', 'hotmail', 'gmx', 'web', 'greenhouse', 'greenhouse-mail', 'lever', 'hire', 'workday', 'myworkday', 'ashbyhq', 'smartrecruiters', 'workable', 'successfactors', 'icims', 'recruitee', 'teamtailor', 'join', 'jobvite', 'bamboohr', 'taleo', 'linkedin', 'indeed', 'stepstone', 'xing'];
       if (domainMatch && domainMatch[1] && !ignoredDomains.includes(domainMatch[1].toLowerCase())) {
         company = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
       }
@@ -160,7 +182,7 @@ function parseEmailHeuristics(subject: string, body: string, sender: string = ''
     new RegExp(`(?:role of|position of|for the position|for the role|job application for|application for(?: the)?)[:\\s]+(?:an? )?${title}(?: role| position| job)?(?: at | with | bei |[\\.,!\\n]|$)`, 'i'),
     new RegExp(`(?:role|position|job title|stelle)\\s*:\\s*${title}(?:[\\.,!\\n]|$)`, 'i'),
     new RegExp(`(?:application|applying|applied) (?:to|for) (?:the |our |an? )?${title} (?:role|position|opening|job)`, 'i'),
-    new RegExp(`for (?:the|our) ${title} (?:role|position|opening)`, 'i'),
+    new RegExp(`(?:for|in) (?:the|our) ${title} (?:role|position|opening)`, 'i'),
     new RegExp(`bewerbung (?:als|für die position|für die stelle|auf die stelle)(?: als)? ${title}(?: bei | an |[\\.,!\\n]|$)`, 'i'),
     new RegExp(`:\\s*${title}\\s*$`, 'i') // e.g. "Your application to Google: Software Engineer (L3)"
   ];
@@ -243,6 +265,27 @@ function normalizeAIResult(raw: any, subject: string): ParsedJobInfo {
     status,
     notes: str(raw.notes, `Automatically synced from email with subject: "${subject}".`),
     isJobRelated: true
+  };
+}
+
+// The small Llama model regularly (a) answers "Unknown" for company/title even when they're in the
+// email and (b) labels polite rejections ("thank you for your interest… we decided to move forward
+// with other candidates") as "Applied". The rule-based extractor is precise on both, so use it to
+// fill the gaps and to catch rejections the model missed.
+function combineWithRules(aiResult: ParsedJobInfo, subject: string, body: string, sender: string): ParsedJobInfo {
+  const rules = extractJobDetails(subject, body, sender);
+
+  if (!aiResult.isJobRelated) {
+    // Trust the AI's "not a job email" unless the rules see a clear application email with a status change
+    const clearStatusChange = rules.status === 'Rejected' || rules.status === 'Interviewing' || rules.status === 'Offer';
+    return clearStatusChange && looksLikeApplicationEmail(subject, body) ? rules : aiResult;
+  }
+
+  return {
+    ...aiResult,
+    company: aiResult.company === UNKNOWN_COMPANY ? rules.company : aiResult.company,
+    position: aiResult.position === UNKNOWN_POSITION ? rules.position : aiResult.position,
+    status: rules.status === 'Rejected' ? 'Rejected' : aiResult.status
   };
 }
 
@@ -344,7 +387,8 @@ You MUST return only a valid JSON object matching this schema:
 
     const data = await response.json();
     const content = data.choices[0].message.content.trim();
-    return normalizeAIResult(JSON.parse(content), subject);
+    const aiResult = normalizeAIResult(JSON.parse(content), subject);
+    return combineWithRules(aiResult, subject, body, sender);
   } catch (error) {
     console.error('Groq AI email parsing failed, falling back to heuristics:', error);
     return parseEmailHeuristics(subject, body, sender);
